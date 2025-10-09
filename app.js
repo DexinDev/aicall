@@ -1,4 +1,4 @@
-// app.js — Twilio inbound -> OpenAI dialog (EN only) -> ElevenLabs TTS -> Google Calendar booking
+// app.js — Conversational Twilio bot (EN), OpenAI-driven, ElevenLabs TTS, Google Calendar booking
 // deps: npm i express twilio googleapis google-auth-library dotenv openai
 
 import express from "express";
@@ -23,34 +23,26 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 const {
-  // Infra
   PORT = 3000,
   BASE_URL,
 
-  // Timezone & slots
   BUSINESS_TZ = "America/New_York",
-  SLOT_MINUTES = "30",
+  SLOT_MINUTES = "130",
   WORK_START = "09:00",
   WORK_END = "18:00",
 
-  // ElevenLabs
   ELEVENLABS_API_KEY,
   ELEVENLABS_VOICE_ID,
 
-  // Google Calendar (Service Account)
   GOOGLE_CLIENT_EMAIL,
   GOOGLE_PRIVATE_KEY,
-  GOOGLE_IMPERSONATE_USER,        // optional (Workspace + Domain-wide Delegation)
+  GOOGLE_IMPERSONATE_USER,
   CALENDAR_ID,
 
-  // OpenAI
   OPENAI_API_KEY,
   OPENAI_MODEL = "gpt-4o-mini",
 
-  // KB
   COMPANY_KB_FILE = "company.json",
-
-  // Audio cache dir
   AUDIO_DIR_ENV
 } = process.env;
 
@@ -66,14 +58,9 @@ app.get("/media/:file", (req, res) => {
   fs.createReadStream(f).pipe(res);
 });
 
-// ---------- Helpers ----------
+// ---------- Twilio helpers ----------
 const { twiml: { VoiceResponse } } = twilio;
 
-function twimlPlay(url) {
-  const r = new VoiceResponse();
-  r.play(url);
-  return r.toString();
-}
 function twimlPlayThenGather(url, opts = {}) {
   const r = new VoiceResponse();
   r.play(url);
@@ -82,6 +69,8 @@ function twimlPlayThenGather(url, opts = {}) {
     action: "/gather",
     method: "POST",
     enhanced: true,
+    speechTimeout: "auto",
+    timeout: 8,
     ...opts
   });
   return r.toString();
@@ -89,7 +78,7 @@ function twimlPlayThenGather(url, opts = {}) {
 function twimlRecordThenHangup(url) {
   const r = new VoiceResponse();
   r.play(url);
-  r.record({ maxLength: 90, playBeep: true, action: "/voicemail" });
+  r.record({ maxLength: 120, playBeep: true, action: "/voicemail" });
   return r.toString();
 }
 function twimlHangupWithPlay(url) {
@@ -99,6 +88,7 @@ function twimlHangupWithPlay(url) {
   return r.toString();
 }
 
+// ---------- Time helpers ----------
 function addMinutes(d, min) { return new Date(d.getTime() + min * 60000); }
 function toDayWithTime(date, timeStr) {
   const [h, m] = timeStr.split(":").map(Number);
@@ -112,7 +102,6 @@ function workingSlots(startDate, days = 7) {
     const day = new Date(startDate);
     day.setDate(day.getDate() + i);
     // if ([0,6].includes(day.getDay())) continue; // skip weekends if needed
-
     let s = toDayWithTime(day, WORK_START);
     const e = toDayWithTime(day, WORK_END);
     while (s < e) {
@@ -139,7 +128,7 @@ function enDate(dt) {
   return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
-// ---------- ElevenLabs TTS (EN only) ----------
+// ---------- ElevenLabs TTS ----------
 async function ttsElevenLabs(text) {
   const file = path.join(AUDIO_DIR, `${crypto.randomUUID()}.mp3`);
   const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`, {
@@ -169,7 +158,6 @@ async function gCal() {
     },
     scopes: ["https://www.googleapis.com/auth/calendar"]
   });
-
   let client = await auth.getClient();
   if (GOOGLE_IMPERSONATE_USER) {
     client = auth.fromJSON({
@@ -196,7 +184,6 @@ async function getThreeSlots() {
       timeZone: BUSINESS_TZ
     }
   });
-
   const busy = (fb.data.calendars?.[CALENDAR_ID]?.busy || [])
     .map(b => ({ start: b.start, end: b.end }));
 
@@ -208,7 +195,6 @@ async function getThreeSlots() {
 
 async function tryBook(start_iso, end_iso, clientName, details, callSid) {
   const cal = await gCal();
-
   // final collision check
   const fb = await cal.freebusy.query({
     requestBody: {
@@ -221,7 +207,6 @@ async function tryBook(start_iso, end_iso, clientName, details, callSid) {
   if ((fb.data.calendars?.[CALENDAR_ID]?.busy || []).length) return false;
 
   const summaryTitle = `${clientName || "Client"} - estimation`.trim();
-
   await cal.events.insert({
     calendarId: CALENDAR_ID,
     requestBody: {
@@ -240,28 +225,30 @@ const oai = new OpenAI({ apiKey: OPENAI_API_KEY });
 const KB = JSON.parse(fs.readFileSync(path.join(__dirname, COMPANY_KB_FILE), "utf8"));
 
 const SYSTEM_PROMPT = `
-You are a phone receptionist AI for a licensed & insured General Contractor. English only.
+You are a friendly phone receptionist AI for a licensed & insured US General Contractor. English only.
 
-Objectives and strict flow:
-1) Greet and ask how we can help.
-2) If the caller needs a REMODEL/ESTIMATE:
-   - Briefly collect details: which room/area and what needs to be done (e.g., kitchen cabinets & countertops; bathroom shower & tile; flooring; painting; full home).
-   - Say we can handle it.
+Conversational style:
+- Sound natural and human. Acknowledge phatic utterances ("Hi", "Yes") with short backchannel responses and a helpful follow-up question.
+- Keep turns short (1–2 sentences) and end most replies with a question to keep the conversation going.
+- Never hang up unless explicitly instructed or after voicemail recording completes.
+
+Main goals:
+1) If caller needs a REMODEL/ESTIMATE:
+   - Gently ask for a bit more detail: which room/area and what needs to be done.
+   - Confirm we can do it.
    - Ask if they'd like to book an estimator visit.
-   - If they agree: FIRST ask for the caller's name. AFTER you have the name, call get_free_slots to get 3 options. Offer them and wait for choice.
-   - When the caller chooses a time slot, call book_selected_slot with: start_iso, end_iso, client_name, details (short summary from what they said).
+   - If yes: FIRST collect the caller's name. After you have the name, call get_free_slots to get 3 options, present them, wait for choice.
+   - When caller chooses a slot, call book_selected_slot with start_iso, end_iso, client_name, details (short summary).
    - Confirm the booking.
-3) If the caller asks about COMPANY INFO:
-   - Answer briefly using KB below.
-   - Then ask if they'd like to book an estimator visit; follow the same booking flow as above (ask for name before calling get_free_slots).
-4) If NOT a remodel request (spam/partnership/other):
-   - Ask for their name and say we'll call them back. Then call end_with_callback tool to finish the call.
+2) If caller asks about COMPANY INFO:
+   - Answer briefly using KB below, then offer to book a visit; same flow (ask name before get_free_slots).
+3) If NOT a remodel (spam/partnership/other):
+   - Ask for their name and say we’ll call back. Then call end_with_callback to finish politely.
 
-Rules:
-- Be concise, friendly, phone-ready.
-- Do NOT invent calendar availability or bookings; always use tools.
-- Do NOT switch language; US English only.
-- When you ask for a name or details, wait for the next user message before taking further actions.
+Safety & tools:
+- Do NOT invent availability or bookings; ALWAYS use tools.
+- Ask for name BEFORE get_free_slots; if you don't have it yet, ask for it.
+- Keep replies conversational and human-like; acknowledge “Hi”, “Yeah”, “Okay” etc.
 
 KB (use only for company questions):
 about: ${KB.about}
@@ -290,14 +277,14 @@ const tools = [
     type: "function",
     function: {
       name: "book_selected_slot",
-      description: "Book the chosen time for an estimator visit. The calendar event title must be '{client_name} - estimation'.",
+      description: "Book chosen time. Calendar event title must be '{client_name} - estimation'.",
       parameters: {
         type: "object",
         properties: {
-          start_iso: { type: "string", description: "ISO start in BUSINESS_TZ" },
-          end_iso:   { type: "string", description: "ISO end in BUSINESS_TZ" },
-          client_name: { type: "string", description: "Caller name, e.g. John Smith" },
-          details: { type: "string", description: "Short summary of room/area and tasks" }
+          start_iso: { type: "string" },
+          end_iso:   { type: "string" },
+          client_name: { type: "string" },
+          details: { type: "string" }
         },
         required: ["start_iso","end_iso","client_name","details"]
       }
@@ -307,19 +294,18 @@ const tools = [
     type: "function",
     function: {
       name: "end_with_callback",
-      description: "Finish the call politely after collecting the caller's name for a callback.",
+      description: "Finish politely after collecting the caller's name for a callback.",
       parameters: {
         type: "object",
         properties: {
-          client_name: { type: "string", description: "Caller name if provided", nullable: true }
+          client_name: { type: "string", nullable: true }
         }
       }
     }
   }
 ];
 
-// In-memory call state
-// CallSid -> { dialog, callSid, clientName, details }
+// In-memory call state: CallSid -> { dialog, callSid, clientName, details }
 const callState = new Map();
 
 async function llmRespond(dialog, state) {
@@ -335,6 +321,10 @@ async function llmRespond(dialog, state) {
     const args = call.function?.arguments ? JSON.parse(call.function.arguments) : {};
 
     if (call.function.name === "get_free_slots") {
+      if (!state.clientName) {
+        // Ask for name instead of calling the tool
+        return { type: "answer", text: "Sure—what's your name?" };
+      }
       const proposed = await getThreeSlots();
       dialog.push(msg);
       dialog.push({
@@ -353,11 +343,9 @@ async function llmRespond(dialog, state) {
     }
 
     if (call.function.name === "book_selected_slot") {
-      // persist name & details to state for logging if wanted
       if (args.client_name) state.clientName = args.client_name;
       if (args.details) state.details = args.details;
-
-      const ok = await tryBook(args.start_iso, args.end_iso, args.client_name, args.details, state.callSid);
+      const ok = await tryBook(args.start_iso, args.end_iso, state.clientName || args.client_name, state.details || args.details, state.callSid);
       dialog.push(msg);
       dialog.push({
         role: "tool",
@@ -380,8 +368,8 @@ async function llmRespond(dialog, state) {
 app.post("/voice", async (req, res) => {
   try {
     const callSid = req.body?.CallSid || crypto.randomUUID();
-    // First assistant line (model will handle the rest on next turn)
-    const greeting = "Hi! This is American Developer Group. How can we help you today?";
+    // Friendlier first line; next turns are fully LLM-driven
+    const greeting = "Hi, this is American Developer Group. How can I help today?";
     const dialog = [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "assistant", content: greeting }
@@ -403,32 +391,39 @@ app.post("/gather", async (req, res) => {
   const mem = callState.get(callSid) || { dialog: [], clientName: null, details: null, callSid };
 
   try {
-    // naive extraction (optional): if user says "my name is John"
-    const nameMatch = text.match(/\b(my name is|this is)\s+([a-z][a-z.' -]+)$/i);
-    if (nameMatch) mem.clientName = nameMatch[2].trim();
+    // Name extraction (handles "my name is...", "this is...", or just "John/John Smith")
+    let nm;
+    const m1 = text.match(/\b(my name is|this is)\s+([a-z][a-z.' -]{1,60})$/i);
+    if (m1) nm = m1[2];
+    if (!nm) {
+      const m2 = text.trim().match(/^([A-Za-z][A-Za-z.' -]{1,60})$/);
+      if (m2) nm = m2[1];
+    }
+    if (nm) mem.clientName = nm.trim();
 
-    // add user turn
+    // Details heuristic: keep short
+    if (!mem.details && /(kitchen|bath|shower|tile|counter|cabinet|floor|paint|drywall|plumb|elect|full home|whole house)/i.test(text)) {
+      mem.details = text.slice(0, 400);
+    }
+
+    // Add user turn & ask LLM
     mem.dialog.push({ role: "user", content: text });
-
     const result = await llmRespond(mem.dialog, mem);
 
     if (result.type === "end_callback") {
-      const msg = result.name
-        ? `Thanks, ${result.name}. We will call you back shortly. Goodbye.`
+      const msg = mem.clientName
+        ? `Thanks, ${mem.clientName}. We will call you back shortly. Goodbye.`
         : `Thanks. We will call you back shortly. Goodbye.`;
       const url = await ttsElevenLabs(msg);
       callState.delete(callSid);
       return res.type("text/xml").send(twimlHangupWithPlay(url));
     }
 
-    if (result.type === "answer") {
-      callState.set(callSid, mem);
-      const speakUrl = await ttsElevenLabs(result.text);
-      return res.type("text/xml").send(twimlPlayThenGather(speakUrl));
-    }
+    // Normal conversational turn (keep-alive)
+    const speakUrl = await ttsElevenLabs(result.text || "Okay. Could you tell me a bit more?");
+    callState.set(callSid, mem);
+    return res.type("text/xml").send(twimlPlayThenGather(speakUrl));
 
-    const url = await ttsElevenLabs("Sorry, I didn't catch that. Could you repeat, please?");
-    return res.type("text/xml").send(twimlPlayThenGather(url));
   } catch (e) {
     console.error(e);
     const url = await ttsElevenLabs("Sorry, something went wrong on our side. Please try again later.");
