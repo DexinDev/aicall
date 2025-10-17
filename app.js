@@ -1,7 +1,9 @@
 // app.js (ESM). В package.json добавь: { "type": "module" }
 import 'dotenv/config';
 import express from 'express';
-import { urlencoded } from 'body-parser';
+import bodyParser from 'body-parser';
+const { urlencoded } = bodyParser;
+app.use(urlencoded({ extended: false }));
 import { xml } from 'xmlbuilder2';
 import fs from 'fs';
 import path from 'path';
