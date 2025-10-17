@@ -8,7 +8,7 @@ import xmlbuilder2 from 'xmlbuilder2';
 import { GoogleAuth } from 'google-auth-library';
 import { google } from 'googleapis';
 
-const { xml } = xmlbuilder2;
+const { create } = xmlbuilder2;
 
 // ---------- Paths / constants ----------
 const __filename = fileURLToPath(import.meta.url);
@@ -30,7 +30,7 @@ const WORK_END = process.env.WORK_END || '18:00';
 
 // ---------- Helpers ----------
 function twiml(verbs) {
-  return xml({ Response: verbs }).end({ prettyPrint: true });
+  return create({ Response: verbs }).end({ prettyPrint: true });
 }
 function addMinutes(d, m) { return new Date(d.getTime() + m * 60000); }
 function toLocal(d) { return new Date(d.toLocaleString('en-US', { timeZone: TZ })); }
