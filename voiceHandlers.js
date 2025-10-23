@@ -63,7 +63,7 @@ export async function handleVoiceEntry(req, res) {
     },
     history: [{ 
       role: 'assistant', 
-      content: 'Hey there! My name's Verter — I'm the chief robot manager here at American Developer Group. May I have your name, and what can I help you with today?' 
+      content: "Hey there! My name's Verter — I'm the chief robot manager here at American Developer Group. May I have your name, and what can I help you with today?" 
     }],
     filters: null
   });
