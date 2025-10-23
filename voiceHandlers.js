@@ -151,6 +151,13 @@ export async function handleGather(req, res) {
       return;
     }
 
+    // ===== Handle CONFIRM state =====
+    if (call.state.lastAction === 'CONFIRM') {
+      // User confirmed booking, proceed to book
+      const idx = call.state.chosenIndex || 0;
+      return await bookChosen(idx, null, call, sid, res);
+    }
+
     // ===== Delegate to LLM planner =====
     call.history.push({ role: 'user', content: text });
     let plan = await aiPlan(call.history, call.state);
