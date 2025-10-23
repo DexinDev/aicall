@@ -15,6 +15,6 @@ export const TZ = process.env.BUSINESS_TZ || 'America/New_York';
 export const SLOT_MIN = parseInt(process.env.SLOT_MINUTES || '60', 10);
 export const WORK_START = process.env.WORK_START || '09:00';
 export const WORK_END = process.env.WORK_END || '18:00';
-export const BUFFER_MIN = parseInt(process.env.MIN_BUFFER_MIN || '120', 10); // не предлагать ближе X минут от "сейчас"
+export const BUFFER_MIN = parseInt(process.env.MIN_BUFFER_MIN || '120', 10); // don't offer slots closer than X minutes from "now"
 
 export { AUDIO_DIR };

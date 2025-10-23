@@ -1,6 +1,6 @@
 import { TZ, SLOT_MIN, WORK_START, WORK_END, BUFFER_MIN } from './config.js';
 
-// ---------- Time helpers (нативная речь) ----------
+// ---------- Time helpers (natural speech) ----------
 export function addMinutes(d, m) { 
   return new Date(d.getTime() + m * 60000); 
 }
