@@ -1,5 +1,5 @@
 import twilio from 'twilio';
-const { VoiceResponse } = twilio;
+const { VoiceResponse } = twilio.twiml;
 import { COMPANY } from './config.js';
 import { applyFilters, humanDateTime } from './timeUtils.js';
 import { findFree, checkSlotAvailability, bookAppointment } from './calendar.js';
