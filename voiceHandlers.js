@@ -153,6 +153,11 @@ export async function handleGather(req, res) {
 
     // ===== Handle CONFIRM state =====
     if (call.state.lastAction === 'CONFIRM') {
+      // Check if user actually confirmed (not rejected)
+      if (negativeIntent(text)) {
+        // User rejected, go back to offering slots
+        return await doOfferSlots('No problem. Let me show you other options.', call, sid, res);
+      }
       // User confirmed booking, proceed to book
       const idx = call.state.chosenIndex || 0;
       return await bookChosen(idx, null, call, sid, res);
