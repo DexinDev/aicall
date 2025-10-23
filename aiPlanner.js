@@ -53,6 +53,11 @@ INTENT RECOGNITION:
 - "marketing", "advertising", "promotion" = marketing intent
 - If user wants to schedule ANY service → set intent to "remodel" and proceed with scheduling
 
+TIME CHANGE REQUESTS:
+- "move to [day]", "change to [day]", "reschedule to [day]", "can we do [day]" = request to change time
+- When user requests time change: Clear current proposed slots, ask for new day preference, then offer new slots
+- Do NOT book the current slot when user is requesting a different time
+
 ACTIONS (return strict JSON only):
 {
   "updates": { "name?": string, "intent?": "remodel|job|partner|marketing|other", "address?": string, "greetedOnce?": boolean },

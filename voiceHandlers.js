@@ -158,6 +158,16 @@ export async function handleGather(req, res) {
       return await bookChosen(idx, null, call, sid, res);
     }
 
+    // ===== Handle time change requests =====
+    if (call.state.lastAction === 'OFFER_SLOTS' && isTimeChangeRequest(text)) {
+      // User wants to change time, clear current slots and ask for new preference
+      call.state.proposed = null;
+      call.state.offerAttempts = 0;
+      call.filters = deriveFiltersFromText(text);
+      await doOfferSlots('Got it — let me check availability for that time...', call, sid, res);
+      return;
+    }
+
     // ===== Delegate to LLM planner =====
     call.history.push({ role: 'user', content: text });
     let plan = await aiPlan(call.history, call.state);
@@ -339,3 +349,9 @@ async function bookChosen(idx, customReply, call, sid, res) {
 
 // Import deriveFiltersFromText from timeUtils
 import { deriveFiltersFromText } from './timeUtils.js';
+
+// ---------- Helper functions ----------
+export function isTimeChangeRequest(s) {
+  const t = (s || '').toLowerCase();
+  return /(move to|change to|reschedule to|can we do|can we move|actually.*saturday|actually.*sunday|actually.*monday|actually.*tuesday|actually.*wednesday|actually.*thursday|actually.*friday)/.test(t);
+}
