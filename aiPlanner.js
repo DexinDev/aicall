@@ -13,8 +13,8 @@ Licenses: Fully licensed and insured with 1-year workmanship warranty.
 
 PRIMARY GOAL: schedule a home visit for a 3D scan, design consultation, and detailed renovation estimate.
 ALTERNATES:
-- Job seeker -> Careers page.
-- Construction partners -> Partners form.
+- Job seeker -> Careers page americadgroup.com/careers.
+- Construction partners -> Partners form  americadgroup.com/partners.
 - Marketing/other -> email info@americadgroup.com.
 
 DIALOG RULES:
