@@ -89,7 +89,20 @@ export function workingSlots(fromDate, days = 14) {
 // ---------- Preference filters ----------
 export function deriveFiltersFromText(t) {
   const s = (t || '').toLowerCase();
-  const res = { day: null, part: null }; // day: Date; part: 'morning'|'afternoon'|'evening'
+  const res = { day: null, part: null, specificTime: null }; // day: Date; part: 'morning'|'afternoon'|'evening'; specificTime: '5:00 p.m.'
+  
+  // Check for specific time (e.g., "5:00 p.m.", "5 a.m.", "maybe 5:00 p.m.")
+  const timeMatch = s.match(/(\d{1,2}):?(\d{0,2})\s*(a\.?m\.?|p\.?m\.?)/);
+  if (timeMatch) {
+    let hours = parseInt(timeMatch[1]);
+    const minutes = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+    const isPM = /p\.?m\.?/.test(timeMatch[3]);
+    
+    if (isPM && hours < 12) hours += 12;
+    if (!isPM && hours === 12) hours = 0;
+    
+    res.specificTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
   
   if (/morning/.test(s)) res.part = 'morning';
   else if (/afternoon/.test(s)) res.part = 'afternoon';
@@ -136,6 +149,15 @@ export function applyFilters(slots, filters) {
       if (filters.part === 'afternoon') return h >= 12 && h < 16;
       if (filters.part === 'evening') return h >= 16 && h < 19;
       return true;
+    });
+  }
+  
+  if (filters.specificTime) {
+    const [targetHours, targetMinutes] = filters.specificTime.split(':').map(Number);
+    out = out.filter(s => {
+      const slotHours = s.start.getHours();
+      const slotMinutes = s.start.getMinutes();
+      return slotHours === targetHours && slotMinutes === targetMinutes;
     });
   }
   

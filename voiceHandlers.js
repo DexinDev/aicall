@@ -224,6 +224,7 @@ export async function handleGather(req, res) {
       call.state.proposed = null;
       call.state.offerAttempts = 0;
       call.filters = deriveFiltersFromText(text);
+      // For specific time requests, we need to find slots that match that time
       await doOfferSlots(plan.reply || 'Got it — let me check availability for that time...', call, sid, res);
       return;
     }
