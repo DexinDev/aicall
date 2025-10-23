@@ -158,15 +158,6 @@ export async function handleGather(req, res) {
       return await bookChosen(idx, null, call, sid, res);
     }
 
-    // ===== Handle time change requests =====
-    if (call.state.lastAction === 'OFFER_SLOTS' && isTimeChangeRequest(text)) {
-      // User wants to change time, clear current slots and ask for new preference
-      call.state.proposed = null;
-      call.state.offerAttempts = 0;
-      call.filters = deriveFiltersFromText(text);
-      await doOfferSlots('Got it — let me check availability for that time...', call, sid, res);
-      return;
-    }
 
     // ===== Delegate to LLM planner =====
     call.history.push({ role: 'user', content: text });
@@ -221,6 +212,15 @@ export async function handleGather(req, res) {
     if (plan.action === 'BOOK') {
       const idx = typeof plan.chosen_index === 'number' ? plan.chosen_index : 0;
       return await bookChosen(idx, plan.reply, call, sid, res);
+    }
+
+    if (plan.action === 'CHANGE_TIME') {
+      // User wants to change time, clear current slots and ask for new preference
+      call.state.proposed = null;
+      call.state.offerAttempts = 0;
+      call.filters = deriveFiltersFromText(text);
+      await doOfferSlots(plan.reply || 'Got it — let me check availability for that time...', call, sid, res);
+      return;
     }
 
     if (plan.action === 'CLOSE_CHECK') {
