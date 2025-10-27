@@ -279,13 +279,17 @@ export async function handleVoicemail(req, res) {
 
 // ---------- Helper functions ----------
 async function doOfferSlots(prefix, call, sid, res) {
+  const vr = new VoiceResponse();
+  
+  // Play checking audio before finding free slots
+  play(vr, '/media/checking.mp3');
+  
   const allFree = await findFree(new Date(), 10);
   const filtered = applyFilters(allFree, call.filters);
   const shortlist = filtered.slice(0, 3);
   call.state.proposed = shortlist;
   call.state.offerAttempts = 0;
 
-  const vr = new VoiceResponse();
   let speech;
   if (shortlist.length) {
     const options = shortlist.map((s, i) => `Option ${i + 1}: ${humanDateTime(s.start)}.`).join(' ');
