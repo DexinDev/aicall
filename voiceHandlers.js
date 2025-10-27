@@ -175,9 +175,36 @@ export async function handleGather(req, res) {
     
     // Auto-extract phone number if not set by model
     if (!call.state.contactPhone && text) {
-      const extractedPhone = extractPhoneNumber(text);
-      if (extractedPhone) {
-        call.state.contactPhone = extractedPhone;
+      // If we have incomplete phone from previous step, try to complete it
+      if (call.state.incompletePhone) {
+        const digitsOnly = text.replace(/\D/g, '');
+        const combinedPhone = call.state.incompletePhone + digitsOnly;
+        if (combinedPhone.length === 10) {
+          call.state.contactPhone = combinedPhone;
+          delete call.state.incompletePhone;
+        } else if (combinedPhone.length > 10) {
+          // Take last 10 digits
+          call.state.contactPhone = combinedPhone.slice(-10);
+          delete call.state.incompletePhone;
+        } else {
+          // Still incomplete, ask for more
+          plan.action = 'ASK';
+          plan.reply = `Could you give me the full 10-digit phone number?`;
+        }
+      } else {
+        const extractedPhone = extractPhoneNumber(text);
+        if (extractedPhone) {
+          call.state.contactPhone = extractedPhone;
+        } else {
+          // Try to extract partial phone number to check if user gave incomplete number
+          const digitsOnly = text.replace(/\D/g, '');
+          if (digitsOnly.length > 0 && digitsOnly.length < 10) {
+            // User provided partial phone number
+            plan.action = 'ASK';
+            plan.reply = `Could you give me the full 10-digit phone number?`;
+            call.state.incompletePhone = digitsOnly;
+          }
+        }
       }
     }
 
