@@ -10,7 +10,8 @@ import {
   matchNaturalToProposed, 
   sanitizeReply, 
   negativeIntent, 
-  isRemodelIntent 
+  isRemodelIntent,
+  extractPhoneNumber
 } from './aiPlanner.js';
 import { logTwilioCall } from './logger.js';
 
@@ -171,6 +172,14 @@ export async function handleGather(req, res) {
     // Apply updates
     call.state = { ...call.state, ...(plan.updates || {}) };
     plan.reply = sanitizeReply(plan.reply, call.state);
+    
+    // Auto-extract phone number if not set by model
+    if (!call.state.contactPhone && text) {
+      const extractedPhone = extractPhoneNumber(text);
+      if (extractedPhone) {
+        call.state.contactPhone = extractedPhone;
+      }
+    }
 
     // Guards for CLOSE_CHECK misuse
     if (plan.action === 'CLOSE_CHECK' && (isRemodelIntent(text) || !call.state.awaitingClose)) {
