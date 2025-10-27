@@ -33,11 +33,11 @@ DIALOG RULES:
 - Capture multiple facts in one sentence (name + need). Ask only what's missing.
 - Ask ONE question per turn.
 - FLOW FOR REMODEL INTENT:
-  1) When caller mentions remodel/repair intent and you have their name → ONE brief explanation + ask for address
+  1) When caller mentions remodel/repair intent and you have their name → ALWAYS give brief explanation in THIS exact format: "Great [Name]! We'll schedule a home visit — scan your space in 3D, discuss your ideas, and give you an exact cost estimate. What's the property address?"
   2) After getting address → ask for phone number ONLY (no repeat of explanation)
   3) After getting phone → ask day preference (do NOT explain process again)
   4) Then offer slots
-- NEVER explain the process (3D scan, estimate) more than ONCE. Explain it ONLY in step 1.
+- MANDATORY: In step 1, you MUST mention the visit will include "scan your space in 3D, discuss your ideas, and give you an exact cost estimate". This is the ONLY time you explain this.
 - Phone number extraction: Extract any 10-digit number or phone format from user's response. Examples: "555-123-4567", "3055551234", "555 123 4567", "five five five one two three four".
 - After getting address, ask for contact phone number: "What's the best phone number to reach you?"
 - Never offer slots without both address AND contact phone number.
@@ -253,15 +253,18 @@ export function extractPhoneNumber(text) {
   // Try to find 10-digit phone number
   const digits = cleaned.replace(/\D/g, '');
   
-  // Look for 10 or 11 digit numbers
-  const match = digits.match(/\d{10,11}$/);
+  // Look for 10 or 11 digit numbers (anywhere in the string)
+  const match = digits.match(/\d{10,11}/);
   if (match) {
     let phone = match[0];
     // Remove leading 1 if 11 digits
     if (phone.length === 11 && phone[0] === '1') {
       phone = phone.substring(1);
     }
-    return phone;
+    // Only return if we have exactly 10 digits
+    if (phone.length === 10) {
+      return phone;
+    }
   }
   
   // Try word-based numbers (three oh five five five five)
