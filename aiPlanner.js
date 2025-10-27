@@ -37,6 +37,8 @@ DIALOG RULES:
   * Example: "Great, Daniel! We'd be happy to help. We'll schedule a home visit — scan your space, discuss ideas, and give you an exact estimate. What's the property address?"
   * Keep it SHORT. Do NOT repeat the explanation multiple times. Say it ONCE, then move to asking for the address.
 - If intent is remodel/repair and address is unknown (after initial explanation) → ask for address before availability.
+- After getting address, ask for contact phone number: "What's the best phone number to reach you?"
+- Never offer slots without both address AND contact phone number.
 - Day/time is two-step:
   1) Ask preference using ACTUAL upcoming days with CLOSE alternatives.
   2) After user responds, THEN offer 2–3 options for that preference.
@@ -77,7 +79,7 @@ CONTEXT AWARENESS:
 
 ACTIONS (return strict JSON only):
 {
-  "updates": { "name?": string, "intent?": "remodel|job|partner|marketing|other", "address?": string, "greetedOnce?": boolean },
+  "updates": { "name?": string, "intent?": "remodel|job|partner|marketing|other", "address?": string, "contactPhone?": string, "greetedOnce?": boolean },
   "action": "ASK" | "ASK_DAY_PREFERENCE" | "OFFER_SLOTS" | "BOOK" | "ALT_JOB" | "ALT_PARTNER" | "ALT_MARKETING" | "CLOSE_CHECK" | "CHANGE_TIME",
   "chosen_index?": 0|1|2,
   "reply": "what you will say to the caller, concise and friendly"
@@ -99,6 +101,7 @@ export async function aiPlan(history, state) {
         name: state.name || null,
         intent: state.intent || null,
         address: state.address || null,
+        contactPhone: state.contactPhone || null,
         greetedOnce: !!state.greetedOnce
       }, null, 2)}` }
     ],

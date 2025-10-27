@@ -192,10 +192,14 @@ export async function handleGather(req, res) {
       return res.type('text/xml').send(vr.toString());
     }
 
-    // Never offer slots without address
+    // Never offer slots without address and contact phone
     if (plan.action === 'OFFER_SLOTS' && !call.state.address) {
       plan.action = 'ASK';
       plan.reply = plan.reply || `Sure. What's the property address for the visit?`;
+    }
+    if (plan.action === 'OFFER_SLOTS' && call.state.address && !call.state.contactPhone) {
+      plan.action = 'ASK';
+      plan.reply = plan.reply || `What's the best phone number to reach you?`;
     }
 
     if (['ALT_JOB', 'ALT_PARTNER', 'ALT_MARKETING'].includes(plan.action)) {

@@ -82,7 +82,7 @@ export async function bookAppointment(slot, callState) {
       calendarId: process.env.CALENDAR_ID,
       requestBody: {
         summary: 'Home visit: 3D scan & estimate',
-        description: `Booked by Verter AI.\nName: ${callState.name || ''}\nPhone: ${callState.phone || ''}\nAddress: ${callState.address || ''}\nIntent: ${callState.intent || ''}`,
+        description: `Booked by Verter AI.\nName: ${callState.name || ''}\nPhone: ${callState.contactPhone || callState.phone || ''}\nAddress: ${callState.address || ''}\nIntent: ${callState.intent || ''}`,
         start: { dateTime: slot.start.toISOString(), timeZone: TZ },
         end: { dateTime: slot.end.toISOString(), timeZone: TZ },
         reminders: { useDefault: true }
