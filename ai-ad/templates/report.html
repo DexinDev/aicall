@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>OOH Creative Analyzer Report</title>
+    {{REPORT_CSS}}
+  </head>
+  <body>
+    <header class="header">
+      <div>
+        <h1>{{TITLE}}</h1>
+        <p class="subtitle">
+          File: <strong>{{FILE_NAME}}</strong> · Orientation:
+          <strong>{{ORIENTATION}}</strong> · Size:
+          <strong>{{DIMENSIONS}}</strong>
+        </p>
+      </div>
+      <div class="overall-score">
+        <div class="score-value">{{OVERALL_SCORE}}</div>
+        <div class="score-label">{{STATUS_LABEL}}</div>
+        <div class="score-meta">Status code: {{STATUS_RAW}}</div>
+      </div>
+    </header>
+
+    <section class="content">
+      <div class="preview-column">
+        <h2>Creative preview</h2>
+        <div class="preview-frame">
+          <img src="{{PREVIEW_DATA_URL}}" alt="Input preview" />
+        </div>
+      </div>
+
+      <div class="metrics-column">
+        <h2>Subscores</h2>
+        <table class="subscores-table">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Score (0–100)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{SUBSCORE_ROWS}}
+          </tbody>
+        </table>
+
+        <h2>Top recommendations</h2>
+        <ol class="recommendations">
+          {{RECOMMENDATIONS_LIST}}
+        </ol>
+      </div>
+    </section>
+
+    <section class="assumptions">
+      <h2>Assumptions</h2>
+      <ul>
+        {{ASSUMPTIONS_LIST}}
+      </ul>
+      <p class="assumptions-note">
+        This MVP uses simple image statistics (contrast, edge density, color
+        variation) as proxies for readability and clutter. Several advanced
+        checks are currently placeholders and listed in the JSON output
+        assumptions.
+      </p>
+    </section>
+
+    <footer class="footer">
+      <div>
+        Tool version: {{APP_VERSION}} · Schema: {{SCHEMA_ID}}
+      </div>
+      <div>
+        Libraries: {{LIB_VERSIONS}}
+      </div>
+    </footer>
+  </body>
+</html>
+

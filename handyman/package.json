@@ -1,0 +1,26 @@
+{
+  "name": "handyman",
+  "version": "1.0.0",
+  "description": "Embedded handyman day-booking flow with Stripe checkout",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "NODE_ENV=development node src/server.js",
+    "start": "NODE_ENV=production node src/server.js"
+  },
+  "keywords": [
+    "handyman",
+    "booking",
+    "stripe"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "node-fetch": "^2.7.0",
+    "nodemailer": "^7.0.11",
+    "stripe": "^20.0.0"
+  }
+}
