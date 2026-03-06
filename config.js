@@ -10,7 +10,7 @@ const AUDIO_DIR = path.join(__dirname, 'audio');
 fs.mkdirSync(AUDIO_DIR, { recursive: true });
 
 // ---------- Configuration ----------
-export const COMPANY = 'American Developer Group';
+export const COMPANY = 'Full Day Handyman';
 export const TZ = process.env.BUSINESS_TZ || 'America/New_York';
 export const SLOT_MIN = parseInt(process.env.SLOT_MINUTES || '60', 10);
 export const WORK_START = process.env.WORK_START || '09:00';
