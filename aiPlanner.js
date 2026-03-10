@@ -56,34 +56,102 @@ DEFAULTS:
 - If truly unclear → action = "ASK" with a very short clarifying question (do NOT use END).
 `;
 
+// AI provider selection:
+// - AI_PROVIDER=claude  → Anthropic Claude Messages API
+// - otherwise (default) → OpenAI Chat Completions API
+const AI_PROVIDER = (process.env.AI_PROVIDER || '').toLowerCase() === 'claude'
+  ? 'claude'
+  : 'openai';
+
 export async function aiPlan(history, state) {
   const startTime = Date.now();
-  const body = {
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...history,
-      { role: 'system', content: `Current state:\n${JSON.stringify({
-        intent: state.intent || null
-      }, null, 2)}` }
-    ],
-    temperature: 0.3,
-    response_format: { type: "json_object" }
-  };
-  
+
+  const stateText = `Current state:\n${JSON.stringify(
+    { intent: state.intent || null },
+    null,
+    2
+  )}`;
+
   try {
-    const r = await fetch(process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, 
-        'Content-Type': 'application/json' 
-      },
-      body: JSON.stringify(body)
-    });
-    
+    if (AI_PROVIDER === 'claude') {
+      // ----- Anthropic Claude -----
+      const claudeBody = {
+        model: process.env.CLAUDE_MODEL || 'claude-3-haiku-20240307',
+        max_tokens: 512,
+        temperature: 0.3,
+        system: `${SYSTEM_PROMPT}\n\n${stateText}`,
+        messages: history.map(m => ({
+          // Claude expects only 'user' or 'assistant' roles in messages
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: m.content
+        }))
+      };
+
+      const r = await fetch(
+        process.env.CLAUDE_BASE_URL || 'https://api.anthropic.com/v1/messages',
+        {
+          method: 'POST',
+          headers: {
+            'x-api-key': process.env.CLAUDE_API_KEY || '',
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify(claudeBody)
+        }
+      );
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      if (!r.ok) {
+        const errorText = await r.text();
+        logApiCall('claude', 'messages', startTime, endTime, {
+          prompt: `Messages: ${history.length}, State: ${JSON.stringify(state)}`,
+          error: errorText
+        });
+        throw new Error('Claude error: ' + errorText);
+      }
+
+      const data = await r.json();
+      const content = data.content?.[0]?.text || '{}';
+      const parsed = JSON.parse(content);
+
+      logApiCall('claude', 'messages', startTime, endTime, {
+        prompt: `Messages: ${history.length}, State: ${JSON.stringify(state)}`,
+        response: JSON.stringify(parsed)
+      });
+      logPerformance('Claude Messages', duration, 3000);
+
+      return parsed;
+    }
+
+    // ----- OpenAI (default) -----
+    const body = {
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...history,
+        { role: 'system', content: stateText }
+      ],
+      temperature: 0.3,
+      response_format: { type: 'json_object' }
+    };
+
+    const r = await fetch(
+      process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
+
     const endTime = Date.now();
     const duration = endTime - startTime;
-    
+
     if (!r.ok) {
       const errorText = await r.text();
       logApiCall('openai', 'chat-completions', startTime, endTime, {
@@ -92,25 +160,35 @@ export async function aiPlan(history, state) {
       });
       throw new Error('LLM error: ' + errorText);
     }
-    
+
     const data = await r.json();
     const content = data.choices?.[0]?.message?.content || '{}';
     const parsed = JSON.parse(content);
-    
+
     logApiCall('openai', 'chat-completions', startTime, endTime, {
       prompt: `Messages: ${history.length + 2}, State: ${JSON.stringify(state)}`,
       response: JSON.stringify(parsed)
     });
-    
+
     logPerformance('OpenAI Chat', duration, 3000);
-    
+
     return parsed;
   } catch (error) {
     const endTime = Date.now();
-    logApiCall('openai', 'chat-completions', startTime, endTime, {
-      prompt: `Messages: ${history.length + 2}, State: ${JSON.stringify(state)}`,
+    const base = {
+      prompt: `Messages: ${history.length}, State: ${JSON.stringify(state)}`,
       error: error.message
-    });
+    };
+
+    if (AI_PROVIDER === 'claude') {
+      logApiCall('claude', 'messages', startTime, endTime, base);
+    } else {
+      logApiCall('openai', 'chat-completions', startTime, endTime, {
+        ...base,
+        prompt: `Messages: ${history.length + 2}, State: ${JSON.stringify(state)}`
+      });
+    }
+
     throw error;
   }
 }
