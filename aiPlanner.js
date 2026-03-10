@@ -46,12 +46,14 @@ DIALOG RULES:
 - Only use ASK when you genuinely need clarification to decide between HANDYMAN / JOB / OFFER.
 - Do NOT mention any internal routing logic, audio file names, or phone numbers.
 - Do NOT mention calendars, time slots, estimates times, or 3D scans — this system only routes calls.
+- If the caller just greets you (\"hi\", \"hello\", \"how are you\" etc.) without clear intent, ALWAYS respond briefly and then follow up with a clarifying ASK like \"What can we help you with today?\". NEVER use END in this case.
+- Only use END when the caller clearly indicates they don't need anything else (wrong number, goodbye, \"that's all\", \"nothing else\", etc.).
 
 DEFAULTS:
 - If caller clearly needs repairs / handyman / construction help → intent = "handyman", action = "ROUTE_HANDYMAN".
 - If caller clearly seeks a job → intent = "job", action = "ROUTE_JOB".
 - If caller clearly tries to sell/offer something to the company → intent = "offer", action = "ROUTE_OFFER".
-- If truly unclear → action = "ASK" with a very short clarifying question.
+- If truly unclear → action = "ASK" with a very short clarifying question (do NOT use END).
 `;
 
 export async function aiPlan(history, state) {
