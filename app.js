@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { AUDIO_DIR } from './config.js';
 import { tts } from './tts.js';
-import { handleVoiceEntry, handleGather, handleVoicemail, handleStatus } from './voiceHandlers.js';
+import { handleVoiceEntry, handleGather, handleVoicemail } from './voiceHandlers.js';
 
 const app = express();
 app.use(express.urlencoded({ extended: false })); // Twilio sends x-www-form-urlencoded
@@ -21,8 +21,5 @@ app.get('/media/:f', (req, res) => {
 app.post('/voice', handleVoiceEntry);
 app.post('/gather', handleGather);
 app.post('/voicemail', handleVoicemail);
-
-// Twilio call status callback (used for auto-callback on very short calls)
-app.post('/status', handleStatus);
 
 app.listen(process.env.PORT || 3000, ()=> console.log('Verter is live'));

@@ -1,6 +1,5 @@
 import twilio from 'twilio';
 const { VoiceResponse } = twilio.twiml;
-const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 import { COMPANY } from './config.js';
 import { tts } from './tts.js';
 import { aiPlan, sanitizeReply } from './aiPlanner.js';
@@ -161,30 +160,4 @@ export async function handleVoicemail(req, res) {
   play(vr, url);
   vr.hangup();
   res.type('text/xml').send(vr.toString());
-}
-
-// ---------- Call status callback (for auto-callback on very short calls) ----------
-export async function handleStatus(req, res) {
-  try {
-    const status = req.body.CallStatus;
-    const direction = req.body.Direction;
-    const duration = parseInt(req.body.CallDuration || '0', 10);
-    const from = req.body.From;
-    const to = req.body.To;
-
-    // Only react to very short INBOUND calls (caller hung up quickly / was silent)
-    if (direction === 'inbound' && status === 'completed' && duration > 0 && duration <= 10) {
-      // Call the client back and start the normal /voice flow
-      await twilioClient.calls.create({
-        to: from,
-        from: to,
-        url: `${process.env.BASE_URL}/voice`
-      });
-    }
-
-    res.sendStatus(200);
-  } catch (e) {
-    console.error('Status callback error:', e);
-    res.sendStatus(500);
-  }
 }
