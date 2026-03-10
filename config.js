@@ -17,4 +17,8 @@ export const WORK_START = process.env.WORK_START || '09:00';
 export const WORK_END = process.env.WORK_END || '18:00';
 export const BUFFER_MIN = parseInt(process.env.MIN_BUFFER_MIN || '120', 10); // don't offer slots closer than X minutes from "now"
 
+// Twilio Gather / STT tuning
+export const GATHER_TIMEOUT_SEC = parseInt(process.env.GATHER_TIMEOUT_SEC || '10', 10); // wait for speech start
+export const GATHER_SPEECH_TIMEOUT = process.env.GATHER_SPEECH_TIMEOUT || 'auto'; // seconds of silence or 'auto'
+
 export { AUDIO_DIR };

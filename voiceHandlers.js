@@ -1,6 +1,6 @@
 import twilio from 'twilio';
 const { VoiceResponse } = twilio.twiml;
-import { COMPANY } from './config.js';
+import { COMPANY, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT } from './config.js';
 import { tts } from './tts.js';
 import { aiPlan, sanitizeReply } from './aiPlanner.js';
 import { logTwilioCall } from './logger.js';
@@ -22,8 +22,8 @@ export function gather(vr, next) {
     action: next,
     method: 'POST',
     enhanced: true,
-    timeout: 10,
-    speechTimeout: 'auto',
+    timeout: GATHER_TIMEOUT_SEC,
+    speechTimeout: GATHER_SPEECH_TIMEOUT,
     actionOnEmptyResult: true
   };
   return vr.gather(params);
