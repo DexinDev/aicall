@@ -43,10 +43,13 @@ export async function handleVoiceEntry(req, res) {
   play(vr, '/media/intro.mp3');
   gather(vr, '/gather');
 
+  const now = Date.now();
   calls.set(req.body.CallSid, {
     state: { 
       phone: req.body.From, 
-      intent: null 
+      intent: null,
+      startedAt: now,
+      lastPromptAt: now
     },
     history: []
   });
@@ -67,18 +70,28 @@ export async function handleGather(req, res) {
   const call = calls.get(sid) || { 
     state: { 
       phone: req.body.From, 
-      intent: null 
+      intent: null,
+      startedAt: Date.now(),
+      lastPromptAt: null
     }, 
     history: [] 
   };
 
   try {
+    // Rough STT + user response latency measurement
+    const now = Date.now();
+    if (call.state.lastPromptAt) {
+      const totalLatency = now - call.state.lastPromptAt;
+      console.log(`STT+user latency for CallSid=${sid}: ${totalLatency}ms`);
+    }
+
     // If no speech recognized, ask again briefly
     if (!text) {
       const vr = new VoiceResponse();
       const url = await tts(`Sorry, I didn't catch that. What can we help you with today?`);
       play(vr, url);
       gather(vr, '/gather');
+      call.state.lastPromptAt = Date.now();
       calls.set(sid, call);
       return res.type('text/xml').send(vr.toString());
     }
@@ -165,6 +178,7 @@ export async function handleGather(req, res) {
       const url = await tts(msg);
       play(vr, url);
       gather(vr, '/gather');
+      call.state.lastPromptAt = Date.now();
       calls.set(sid, call);
       return res.type('text/xml').send(vr.toString());
     }
