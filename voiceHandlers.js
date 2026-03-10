@@ -83,7 +83,37 @@ export async function handleGather(req, res) {
       return res.type('text/xml').send(vr.toString());
     }
 
-    // Delegate to LLM planner for routing / clarification
+    // ----- Fast deterministic routing for obvious cases -----
+    const t = text.toLowerCase();
+
+    // Obvious job intent
+    if (/(^|\b)(job|work for you|work with you|looking for work|hiring|position|career|apply|application|resume|cv)\b/.test(t)) {
+      const vr = new VoiceResponse();
+      play(vr, '/media/job.mp3');
+      vr.hangup();
+      calls.delete(sid);
+      return res.type('text/xml').send(vr.toString());
+    }
+
+    // Obvious offer/marketing intent
+    if (/(marketing|advertis(ing|e)|seo|leads?|lead generation|sell you|offer you (services|software)|partnership|partner with you)/.test(t)) {
+      const vr = new VoiceResponse();
+      play(vr, '/media/offer.mp3');
+      vr.hangup();
+      calls.delete(sid);
+      return res.type('text/xml').send(vr.toString());
+    }
+
+    // Obvious handyman / repair intent
+    if (/(handyman|repair|fix|remodel|renovat|installation|install|mount|leak|broken|damage|maintenance|plumb|electric|door|window)/.test(t)) {
+      const vr = new VoiceResponse();
+      play(vr, '/media/human.mp3');
+      vr.dial('+15619316869');
+      calls.delete(sid);
+      return res.type('text/xml').send(vr.toString());
+    }
+
+    // ----- Delegate to LLM planner for routing / clarification -----
     call.history.push({ role: 'user', content: text });
     let plan = await aiPlan(call.history, call.state);
 
