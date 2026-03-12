@@ -63,9 +63,8 @@ export async function handleVoiceEntry(req, res) {
   });
   
   const vr = new VoiceResponse();
-  say(vr, 'Thank you for calling Full Day Handyman. This call may be recorded for quality.');
 
-  // Play pre-recorded intro explaining Full Day Handyman and asking what they need
+  // Play pre-recorded intro (includes greeting and recording notice)
   play(vr, '/media/intro.mp3');
   gather(vr, '/gather');
 
