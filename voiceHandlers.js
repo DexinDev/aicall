@@ -1,12 +1,16 @@
 import twilio from 'twilio';
 const { VoiceResponse } = twilio.twiml;
-import { COMPANY, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT, GATHER_SPEECH_MODEL } from './config.js';
+import { COMPANY, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT, GATHER_SPEECH_MODEL, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } from './config.js';
 import { tts } from './tts.js';
 import { aiPlan, sanitizeReply } from './aiPlanner.js';
 import { logTwilioCall } from './logger.js';
 
 // ---------- State & helpers ----------
 export const calls = new Map(); // CallSid -> { state, history }
+
+const twilioClient = (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN)
+  ? twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+  : null;
 
 // Pre-recorded filler snippets to play while thinking
 // Files are stored under audio/fillers/ in the project root.
@@ -107,9 +111,7 @@ export async function handleGather(req, res) {
       needs_callback: null,
       callback_phone: null,
       endedAt: null,
-      phase: 'initial',
-      pendingPlan: null,
-      planning: false,
+      mode: 'waiting_user',
       startedAt: Date.now(),
       lastPromptAt: null
     }, 
@@ -124,50 +126,7 @@ export async function handleGather(req, res) {
       console.log(`STT+user latency for CallSid=${sid}: ${totalLatency}ms`);
     }
 
-    // If we already have a ready plan, use it immediately (even if SpeechResult is empty).
-    if (call.state.pendingPlan) {
-      const plan = {
-        action: call.state.pendingPlan.action || 'ASK',
-        reply: sanitizeReply(call.state.pendingPlan.reply || '', call.state)
-      };
-      call.state.pendingPlan = null;
-      call.state.phase = 'normal';
-
-      if (plan.action === 'END') {
-        const vr = new VoiceResponse();
-        const msg = plan.reply || `Thanks for calling ${COMPANY}. Have a great day!`;
-        const filler = pickFiller();
-        if (filler) {
-          play(vr, filler);
-          vr.pause({ length: 1 });
-        }
-        const url = await tts(msg);
-        play(vr, url);
-        vr.hangup();
-        call.state.endedAt = Date.now();
-        calls.set(sid, call);
-        return res.type('text/xml').send(vr.toString());
-      }
-
-      // ASK (default)
-      {
-        const vr = new VoiceResponse();
-        const msg = plan.reply || `Could you tell me a little more about what you need help with?`;
-        const filler = pickFiller();
-        if (filler) {
-          play(vr, filler);
-          vr.pause({ length: 1 });
-        }
-        const url = await tts(msg);
-        play(vr, url);
-        gather(vr, '/gather');
-        call.state.lastPromptAt = Date.now();
-        calls.set(sid, call);
-        return res.type('text/xml').send(vr.toString());
-      }
-    }
-
-    // If no speech recognized and нет готового плана — мягко перепросим.
+    // If no speech recognized — мягко перепросим.
     if (!text) {
       const vr = new VoiceResponse();
       const filler = pickFiller();
@@ -228,70 +187,83 @@ export async function handleGather(req, res) {
 
     // Obvious handyman intent now handled fully by AI planner (no human transfer)
 
-    // ---------- Two-phase handling with background planning ----------
-    // Phase 1: no pending plan yet -> start background AI call, play filler, and gather again.
-    if (!call.state.pendingPlan && !call.state.planning) {
-      call.history.push({ role: 'user', content: text });
-      call.state.planning = true;
-      call.state.phase = 'waitingPlan';
-      const stateSnapshot = { ...call.state };
-      const historySnapshot = [...call.history];
+    // ---------- Async planning with REST call update ----------
+    call.history.push({ role: 'user', content: text });
+    call.state.mode = 'thinking';
+    const stateSnapshot = { ...call.state };
+    const historySnapshot = [...call.history];
+    calls.set(sid, call);
 
-      // Fire-and-forget background planner
-      aiPlan(historySnapshot, stateSnapshot)
-        .then(plan => {
+    if (twilioClient) {
+      (async () => {
+        try {
+          let plan = await aiPlan(historySnapshot, stateSnapshot);
           plan = plan || {};
           const updates = plan.updates || {};
+
           const current = calls.get(sid);
           if (!current) return;
+
           current.state = {
             ...current.state,
-            ...updates,
-            pendingPlan: {
-              action: plan.action || 'ASK',
-              reply: plan.reply || ''
-            },
-            planning: false
+            ...updates
           };
+
+          let reply = plan.reply || `Could you tell me a little more about what you need help with?`;
+          reply = sanitizeReply(reply, current.state);
+          const action = plan.action || 'ASK';
+
+          const vr2 = new VoiceResponse();
+          const filler2 = pickFiller();
+          if (filler2) {
+            play(vr2, filler2);
+            vr2.pause({ length: 1 });
+          }
+          const url = await tts(reply);
+          play(vr2, url);
+
+          if (action === 'END') {
+            vr2.hangup();
+            current.state.endedAt = Date.now();
+            current.state.mode = 'done';
+          } else {
+            gather(vr2, '/gather');
+            current.state.lastPromptAt = Date.now();
+            current.state.mode = 'waiting_user';
+          }
+
           calls.set(sid, current);
-        })
-        .catch(err => {
-          console.error('Background planner error:', err);
+          await twilioClient.calls(sid).update({ twiml: vr2.toString() });
+        } catch (err) {
+          console.error('Background planner error (REST update):', err);
           const current = calls.get(sid);
-          if (!current) return;
-          current.state.planning = false;
+          if (!current || !twilioClient) return;
+          const vrErr = new VoiceResponse();
+          const fillerErr = pickFiller();
+          if (fillerErr) {
+            play(vrErr, fillerErr);
+            vrErr.pause({ length: 1 });
+          }
+          const urlErr = await tts(`Sorry, I had a glitch. Want to try that again?`);
+          play(vrErr, urlErr);
+          gather(vrErr, '/gather');
+          current.state.lastPromptAt = Date.now();
+          current.state.mode = 'waiting_user';
           calls.set(sid, current);
-        });
-
-      const vr = new VoiceResponse();
-      const filler = pickFiller();
-      if (filler) {
-        play(vr, filler);
-        vr.pause({ length: 2 });
-      }
-      const url = await tts(`Got it. Give me just a moment while I check this for you.`);
-      play(vr, url);
-      gather(vr, '/gather');
-      call.state.lastPromptAt = Date.now();
-      calls.set(sid, call);
-      return res.type('text/xml').send(vr.toString());
+          await twilioClient.calls(sid).update({ twiml: vrErr.toString() });
+        }
+      })();
     }
 
-    // Planning still in progress but план ещё не готов: мягкий fallback.
-    if (call.state.planning && !call.state.pendingPlan) {
-      const vr = new VoiceResponse();
-      const filler = pickFiller();
-      if (filler) {
-        play(vr, filler);
-        vr.pause({ length: 2 });
-      }
-      const url = await tts(`I'm just finishing checking that. One more moment, please.`);
-      play(vr, url);
-      gather(vr, '/gather');
-      call.state.lastPromptAt = Date.now();
-      calls.set(sid, call);
-      return res.type('text/xml').send(vr.toString());
+    // Немедленный ответ: один короткий филлер + пауза, без Gather.
+    const vr = new VoiceResponse();
+    const filler = pickFiller();
+    if (filler) {
+      play(vr, filler);
     }
+    // Держим звонок живым, пока не придёт REST-обновление с реальным ответом.
+    vr.pause({ length: 60 });
+    return res.type('text/xml').send(vr.toString());
 
   } catch (e) {
     console.error('Planner error:', e, 'User said:', text);
