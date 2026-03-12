@@ -26,10 +26,12 @@ function pickFiller() {
 }
 
 export function say(vr, text) { 
+  logTwilioCall('say', { text });
   vr.say({ language: 'en-US' }, text); 
 }
 
 export function play(vr, url) { 
+  logTwilioCall('play', { audioUrl: url });
   vr.play({}, url); 
 }
 
@@ -57,7 +59,7 @@ export async function handleVoiceEntry(req, res) {
   });
   
   const vr = new VoiceResponse();
-  say(vr, 'This call may be recorded.');
+  say(vr, 'Thank you for calling Full Day Handyman. This call may be recorded for quality.');
 
   // Play pre-recorded intro explaining Full Day Handyman and asking what they need
   play(vr, '/media/intro.mp3');
@@ -68,6 +70,13 @@ export async function handleVoiceEntry(req, res) {
     state: { 
       phone: req.body.From, 
       intent: null,
+      zip: null,
+      county: null,
+      service_covered: null,
+      task_list_summary: null,
+      needs_callback: null,
+      callback_phone: null,
+      endedAt: null,
       startedAt: now,
       lastPromptAt: now
     },
@@ -91,6 +100,13 @@ export async function handleGather(req, res) {
     state: { 
       phone: req.body.From, 
       intent: null,
+      zip: null,
+      county: null,
+      service_covered: null,
+      task_list_summary: null,
+      needs_callback: null,
+      callback_phone: null,
+      endedAt: null,
       startedAt: Date.now(),
       lastPromptAt: null
     }, 
@@ -164,54 +180,15 @@ export async function handleGather(req, res) {
       return res.type('text/xml').send(vr.toString());
     }
 
-    // Obvious handyman / repair intent
-    if (!isJobIntent && isHandymanIntent) {
-      const vr = new VoiceResponse();
-      const filler = pickFiller();
-      if (filler) {
-        play(vr, filler);
-        vr.pause({ length: 1 });
-      }
-      play(vr, '/media/human.mp3');
-      vr.dial('+15619316869');
-      calls.delete(sid);
-      return res.type('text/xml').send(vr.toString());
-    }
+    // Obvious handyman intent now handled fully by AI planner (no human transfer)
 
-    // ----- Delegate to LLM planner for routing / clarification -----
+    // ----- Delegate to LLM planner for sales-focused dialog -----
     call.history.push({ role: 'user', content: text });
     let plan = await aiPlan(call.history, call.state);
 
     // Apply updates
     call.state = { ...call.state, ...(plan.updates || {}) };
     plan.reply = sanitizeReply(plan.reply, call.state);
-
-    // Handle routing actions
-    if (plan.action === 'ROUTE_HANDYMAN') {
-      const vr = new VoiceResponse();
-      // Play explanation for human transfer
-      play(vr, '/media/human.mp3');
-      // Then transfer to live human
-      vr.dial('+15619316869');
-      calls.delete(sid);
-      return res.type('text/xml').send(vr.toString());
-    }
-
-    if (plan.action === 'ROUTE_JOB') {
-      const vr = new VoiceResponse();
-      play(vr, '/media/job.mp3');
-      vr.hangup();
-      calls.delete(sid);
-      return res.type('text/xml').send(vr.toString());
-    }
-
-    if (plan.action === 'ROUTE_OFFER') {
-      const vr = new VoiceResponse();
-      play(vr, '/media/offer.mp3');
-      vr.hangup();
-      calls.delete(sid);
-      return res.type('text/xml').send(vr.toString());
-    }
 
     if (plan.action === 'END') {
       const vr = new VoiceResponse();
@@ -224,7 +201,8 @@ export async function handleGather(req, res) {
       const url = await tts(msg);
       play(vr, url);
       vr.hangup();
-      calls.delete(sid);
+      call.state.endedAt = Date.now();
+      calls.set(sid, call);
       return res.type('text/xml').send(vr.toString());
     }
 

@@ -8,6 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const AUDIO_DIR = path.join(__dirname, 'audio');
 fs.mkdirSync(AUDIO_DIR, { recursive: true });
+const CALLS_DIR = path.join(__dirname, 'calls');
+fs.mkdirSync(CALLS_DIR, { recursive: true });
 
 // ---------- Configuration ----------
 export const COMPANY = 'Full Day Handyman';
@@ -22,4 +24,11 @@ export const GATHER_TIMEOUT_SEC = parseInt(process.env.GATHER_TIMEOUT_SEC || '10
 export const GATHER_SPEECH_TIMEOUT = process.env.GATHER_SPEECH_TIMEOUT || 'auto'; // seconds of silence or 'auto'
 export const GATHER_SPEECH_MODEL = process.env.GATHER_SPEECH_MODEL || '';
 
-export { AUDIO_DIR };
+// Calls & notifications
+export const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+export const TELEGRAM_CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID || '';
+export const CALLS_BASE_URL = process.env.CALLS_BASE_URL || `${process.env.BASE_URL || ''}/calls`;
+export const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || '';
+export const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || '';
+
+export { AUDIO_DIR, CALLS_DIR };
