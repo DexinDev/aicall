@@ -64,13 +64,19 @@ export async function handleVoiceEntry(req, res) {
   
   const vr = new VoiceResponse();
 
-  // Start recording the call with callback to /recording
-  const start = vr.start();
-  start.record({
-    recordingStatusCallback: 'https://ai-call.on-forge.com/recording',
-    recordingStatusCallbackMethod: 'POST',
-    recordingTrack: 'both'
-  });
+  // Start recording the call via REST API (both legs)
+  if (twilioClient && req.body.CallSid) {
+    (async () => {
+      try {
+        await twilioClient.calls(req.body.CallSid).recordings.create({
+          recordingStatusCallback: 'https://ai-call.on-forge.com/recording',
+          recordingStatusCallbackMethod: 'POST'
+        });
+      } catch (err) {
+        console.error('Error starting call recording:', err);
+      }
+    })();
+  }
 
   // Play pre-recorded intro (includes greeting and recording notice)
   play(vr, '/media/intro.mp3');
