@@ -29,6 +29,31 @@ function pickFiller() {
   return FILLER_FILES[idx];
 }
 
+function extractZipFromSpeech(text) {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+
+  // First, try to extract 5 consecutive digits
+  const digitsOnly = lower.replace(/\D/g, '');
+  const m = digitsOnly.match(/\d{5}/);
+  if (m) return m[0];
+
+  // Fallback: words like "three three one one zero"
+  const wordToDigit = {
+    'zero': '0', 'oh': '0', 'o': '0',
+    'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5',
+    'six': '6', 'seven': '7', 'eight': '8', 'nine': '9'
+  };
+  const words = lower.split(/\s+/);
+  let acc = '';
+  for (const w of words) {
+    if (wordToDigit[w]) acc += wordToDigit[w];
+  }
+  if (acc.length === 5) return acc;
+
+  return null;
+}
+
 export function say(vr, text) { 
   logTwilioCall('say', { text });
   vr.say({ language: 'en-US' }, text); 
@@ -137,6 +162,13 @@ export async function handleGather(req, res) {
     if (call.state.lastPromptAt) {
       const totalLatency = now - call.state.lastPromptAt;
       console.log(`STT+user latency for CallSid=${sid}: ${totalLatency}ms`);
+    }
+
+    // Try to capture ZIP from this utterance and update state
+    const maybeZip = extractZipFromSpeech(text);
+    if (maybeZip && maybeZip !== call.state.zip) {
+      call.state.zip = maybeZip;
+      // county / service_covered are determined by the model using zip list rules in the prompt
     }
 
     // If no speech recognized — мягко перепросим.
