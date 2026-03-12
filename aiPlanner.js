@@ -568,11 +568,9 @@ export async function aiPlan(history, state) {
 export function sanitizeReply(reply, state) {
   if (!reply) return reply;
   let out = reply;
-  
-  if (state.greetedOnce) {
-    out = out.replace(/\b(great|nice|glad)\s+to\s+meet\s+you\b.*?([.!?]|$)/gi, '');
-  }
-  
+  // убираем повторяющиеся "nice to meet you" и похожие фразы всегда,
+  // чтобы не звучать как заевшее приветствие
+  out = out.replace(/\b(great|nice|glad)\s+to\s+meet\s+you\b.*?([.!?]|$)/gi, '');
   out = out.replace(/\s{2,}/g, ' ').trim();
   return out;
 }

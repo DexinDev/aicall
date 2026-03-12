@@ -249,10 +249,14 @@ export async function handleGather(req, res) {
           const current = calls.get(sid);
           if (!current) return;
 
-          current.state = {
-            ...current.state,
-            ...updates
-          };
+          // merge updates without overwriting existing values with null/undefined
+          const nextState = { ...current.state };
+          for (const [k, v] of Object.entries(updates)) {
+            if (v !== null && v !== undefined) {
+              nextState[k] = v;
+            }
+          }
+          current.state = nextState;
 
           let reply = plan.reply || `Could you tell me a little more about what you need help with?`;
           reply = sanitizeReply(reply, current.state);
