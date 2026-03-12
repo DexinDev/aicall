@@ -8,6 +8,19 @@ import { logTwilioCall } from './logger.js';
 // ---------- State & helpers ----------
 export const calls = new Map(); // CallSid -> { state, history }
 
+// Pre-recorded filler snippets to play while thinking
+const FILLER_FILES = [
+  '/media/fillers/filler1.mp3',
+  '/media/fillers/filler2.mp3',
+  '/media/fillers/filler3.mp3'
+];
+
+function pickFiller() {
+  if (!FILLER_FILES.length) return null;
+  const idx = Math.floor(Math.random() * FILLER_FILES.length);
+  return FILLER_FILES[idx];
+}
+
 export function say(vr, text) { 
   vr.say({ language: 'en-US' }, text); 
 }
@@ -88,6 +101,11 @@ export async function handleGather(req, res) {
     // If no speech recognized, ask again briefly
     if (!text) {
       const vr = new VoiceResponse();
+      const filler = pickFiller();
+      if (filler) {
+        play(vr, filler);
+        vr.pause({ length: 1 });
+      }
       const url = await tts(`Sorry, I didn't catch that. What can we help you with today?`);
       play(vr, url);
       gather(vr, '/gather');
@@ -164,6 +182,11 @@ export async function handleGather(req, res) {
     if (plan.action === 'END') {
       const vr = new VoiceResponse();
       const msg = plan.reply || `Thanks for calling ${COMPANY}. Have a great day!`;
+      const filler = pickFiller();
+      if (filler) {
+        play(vr, filler);
+        vr.pause({ length: 1 });
+      }
       const url = await tts(msg);
       play(vr, url);
       vr.hangup();
@@ -175,6 +198,11 @@ export async function handleGather(req, res) {
     {
       const vr = new VoiceResponse();
       const msg = plan.reply || `Could you tell me a little more about what you need help with?`;
+      const filler = pickFiller();
+      if (filler) {
+        play(vr, filler);
+        vr.pause({ length: 1 });
+      }
       const url = await tts(msg);
       play(vr, url);
       gather(vr, '/gather');
@@ -186,6 +214,11 @@ export async function handleGather(req, res) {
   } catch (e) {
     console.error('Planner error:', e, 'User said:', text);
     const vr = new VoiceResponse();
+    const filler = pickFiller();
+    if (filler) {
+      play(vr, filler);
+      vr.pause({ length: 1 });
+    }
     const url = await tts(`Sorry, I had a glitch. Want to try that again?`);
     play(vr, url);
     gather(vr, '/gather');
