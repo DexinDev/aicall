@@ -10,8 +10,17 @@ app.use(express.urlencoded({ extended: false })); // Twilio sends x-www-form-url
 app.use(express.json());
 
 // ---------- Media endpoint ----------
+// Top-level audio files: /media/<file>.mp3
 app.get('/media/:f', (req, res) => {
   const f = path.join(AUDIO_DIR, path.basename(req.params.f));
+  if (!fs.existsSync(f)) return res.sendStatus(404);
+  res.setHeader('Content-Type', 'audio/mpeg');
+  fs.createReadStream(f).pipe(res);
+});
+
+// Filler / nested audio files: /media/fillers/<file>.mp3
+app.get('/media/fillers/:f', (req, res) => {
+  const f = path.join(AUDIO_DIR, 'fillers', path.basename(req.params.f));
   if (!fs.existsSync(f)) return res.sendStatus(404);
   res.setHeader('Content-Type', 'audio/mpeg');
   fs.createReadStream(f).pipe(res);
