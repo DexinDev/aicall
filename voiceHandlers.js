@@ -117,9 +117,26 @@ export async function handleGather(req, res) {
     // ----- Fast deterministic routing for obvious cases -----
     const t = text.toLowerCase();
 
-    // Obvious job intent
-    if (/(^|\b)(job|work for you|work with you|looking for work|hiring|position|career|apply|application|resume|cv)\b/.test(t)) {
+    const isJobIntent =
+      // generic job / career words
+      /(job|work for you|work with you|looking for work|hiring|position|career|apply|application|resume|cv)/.test(t) ||
+      // handyman job specifically
+      /(handyman\s+job|job\s+for\s+a?\s*handyman|work\s+as\s+a?\s*handyman)/.test(t);
+
+    const isOfferIntent =
+      /(marketing|advertis(ing|e)|seo|leads?|lead generation|sell you|offer you (services|software)|partnership|partner with you)/.test(t);
+
+    const isHandymanIntent =
+      /(handyman|repair|fix|remodel|renovat|installation|install|mount|leak|broken|damage|maintenance|plumb|electric|door|window)/.test(t);
+
+    // Obvious job intent (has priority even if "handyman" also mentioned)
+    if (isJobIntent) {
       const vr = new VoiceResponse();
+      const filler = pickFiller();
+      if (filler) {
+        play(vr, filler);
+        vr.pause({ length: 1 });
+      }
       play(vr, '/media/job.mp3');
       vr.hangup();
       calls.delete(sid);
@@ -127,8 +144,13 @@ export async function handleGather(req, res) {
     }
 
     // Obvious offer/marketing intent
-    if (/(marketing|advertis(ing|e)|seo|leads?|lead generation|sell you|offer you (services|software)|partnership|partner with you)/.test(t)) {
+    if (isOfferIntent) {
       const vr = new VoiceResponse();
+      const filler = pickFiller();
+      if (filler) {
+        play(vr, filler);
+        vr.pause({ length: 1 });
+      }
       play(vr, '/media/offer.mp3');
       vr.hangup();
       calls.delete(sid);
@@ -136,8 +158,13 @@ export async function handleGather(req, res) {
     }
 
     // Obvious handyman / repair intent
-    if (/(handyman|repair|fix|remodel|renovat|installation|install|mount|leak|broken|damage|maintenance|plumb|electric|door|window)/.test(t)) {
+    if (!isJobIntent && isHandymanIntent) {
       const vr = new VoiceResponse();
+      const filler = pickFiller();
+      if (filler) {
+        play(vr, filler);
+        vr.pause({ length: 1 });
+      }
       play(vr, '/media/human.mp3');
       vr.dial('+15619316869');
       calls.delete(sid);
