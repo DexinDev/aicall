@@ -20,5 +20,6 @@ export const BUFFER_MIN = parseInt(process.env.MIN_BUFFER_MIN || '120', 10); // 
 // Twilio Gather / STT tuning
 export const GATHER_TIMEOUT_SEC = parseInt(process.env.GATHER_TIMEOUT_SEC || '10', 10); // wait for speech start
 export const GATHER_SPEECH_TIMEOUT = process.env.GATHER_SPEECH_TIMEOUT || 'auto'; // seconds of silence or 'auto'
+export const GATHER_SPEECH_MODEL = process.env.GATHER_SPEECH_MODEL || '';
 
 export { AUDIO_DIR };
