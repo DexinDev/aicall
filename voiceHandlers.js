@@ -231,26 +231,19 @@ export async function handleGather(req, res) {
           await twilioClient.calls(sid).update({ twiml: vr2.toString() });
         } catch (err) {
           console.error('Background planner error (REST update):', err);
-          const current = calls.get(sid);
-          if (!current || !twilioClient) return;
-          const vrErr = new VoiceResponse();
-          const urlErr = await tts(`Sorry, I had a glitch. Want to try that again?`);
-          play(vrErr, urlErr);
-          gather(vrErr, '/gather');
-          current.state.lastPromptAt = Date.now();
-          current.state.mode = 'waiting_user';
-          calls.set(sid, current);
-          await twilioClient.calls(sid).update({ twiml: vrErr.toString() });
+          // Не пытаемся делать второй update, просто логируем.
         }
       })();
     }
 
-    // Немедленный ответ: один короткий филлер, без Gather и без длинной паузы.
+    // Немедленный ответ: один короткий филлер + длинная пауза, чтобы звонок оставался in-progress.
     const vr = new VoiceResponse();
     const filler = pickFiller();
     if (filler) {
       play(vr, filler);
     }
+    // Пока идёт pause, Twilio будет считать вызов in-progress и примет последующий calls.update.
+    vr.pause({ length: 120 });
     return res.type('text/xml').send(vr.toString());
 
   } catch (e) {
