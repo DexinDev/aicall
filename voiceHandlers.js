@@ -124,7 +124,50 @@ export async function handleGather(req, res) {
       console.log(`STT+user latency for CallSid=${sid}: ${totalLatency}ms`);
     }
 
-    // If no speech recognized, ask again briefly
+    // If we already have a ready plan, use it immediately (even if SpeechResult is empty).
+    if (call.state.pendingPlan) {
+      const plan = {
+        action: call.state.pendingPlan.action || 'ASK',
+        reply: sanitizeReply(call.state.pendingPlan.reply || '', call.state)
+      };
+      call.state.pendingPlan = null;
+      call.state.phase = 'normal';
+
+      if (plan.action === 'END') {
+        const vr = new VoiceResponse();
+        const msg = plan.reply || `Thanks for calling ${COMPANY}. Have a great day!`;
+        const filler = pickFiller();
+        if (filler) {
+          play(vr, filler);
+          vr.pause({ length: 1 });
+        }
+        const url = await tts(msg);
+        play(vr, url);
+        vr.hangup();
+        call.state.endedAt = Date.now();
+        calls.set(sid, call);
+        return res.type('text/xml').send(vr.toString());
+      }
+
+      // ASK (default)
+      {
+        const vr = new VoiceResponse();
+        const msg = plan.reply || `Could you tell me a little more about what you need help with?`;
+        const filler = pickFiller();
+        if (filler) {
+          play(vr, filler);
+          vr.pause({ length: 1 });
+        }
+        const url = await tts(msg);
+        play(vr, url);
+        gather(vr, '/gather');
+        call.state.lastPromptAt = Date.now();
+        calls.set(sid, call);
+        return res.type('text/xml').send(vr.toString());
+      }
+    }
+
+    // If no speech recognized and нет готового плана — мягко перепросим.
     if (!text) {
       const vr = new VoiceResponse();
       const filler = pickFiller();
@@ -234,51 +277,8 @@ export async function handleGather(req, res) {
       return res.type('text/xml').send(vr.toString());
     }
 
-    // Phase 2: we have a pending plan ready -> use it to respond.
-    if (call.state.pendingPlan) {
-      const plan = {
-        action: call.state.pendingPlan.action || 'ASK',
-        reply: sanitizeReply(call.state.pendingPlan.reply || '', call.state)
-      };
-      call.state.pendingPlan = null;
-      call.state.phase = 'normal';
-
-      if (plan.action === 'END') {
-        const vr = new VoiceResponse();
-        const msg = plan.reply || `Thanks for calling ${COMPANY}. Have a great day!`;
-        const filler = pickFiller();
-        if (filler) {
-          play(vr, filler);
-          vr.pause({ length: 1 });
-        }
-        const url = await tts(msg);
-        play(vr, url);
-        vr.hangup();
-        call.state.endedAt = Date.now();
-        calls.set(sid, call);
-        return res.type('text/xml').send(vr.toString());
-      }
-
-      // ASK (default)
-      {
-        const vr = new VoiceResponse();
-        const msg = plan.reply || `Could you tell me a little more about what you need help with?`;
-        const filler = pickFiller();
-        if (filler) {
-          play(vr, filler);
-          vr.pause({ length: 1 });
-        }
-        const url = await tts(msg);
-        play(vr, url);
-        gather(vr, '/gather');
-        call.state.lastPromptAt = Date.now();
-        calls.set(sid, call);
-        return res.type('text/xml').send(vr.toString());
-      }
-    }
-
-    // Fallback: planning still in progress but no plan yet -> keep caller warm.
-    {
+    // Planning still in progress but план ещё не готов: мягкий fallback.
+    if (call.state.planning && !call.state.pendingPlan) {
       const vr = new VoiceResponse();
       const filler = pickFiller();
       if (filler) {
