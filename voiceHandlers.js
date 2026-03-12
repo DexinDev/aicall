@@ -222,7 +222,9 @@ export async function handleGather(req, res) {
             current.state.endedAt = Date.now();
             current.state.mode = 'done';
           } else {
-            gather(vr2, '/gather');
+            // Для REST-обновления TwiML нужен абсолютный URL для action,
+            // иначе Twilio не знает, куда отправлять следующий gather.
+            gather(vr2, 'https://ai-call.on-forge.com/gather');
             current.state.lastPromptAt = Date.now();
             current.state.mode = 'waiting_user';
           }
