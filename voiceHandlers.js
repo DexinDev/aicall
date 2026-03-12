@@ -107,6 +107,9 @@ export async function handleGather(req, res) {
       needs_callback: null,
       callback_phone: null,
       endedAt: null,
+      phase: 'initial',
+      pendingPlan: null,
+      planning: false,
       startedAt: Date.now(),
       lastPromptAt: null
     }, 
@@ -182,40 +185,107 @@ export async function handleGather(req, res) {
 
     // Obvious handyman intent now handled fully by AI planner (no human transfer)
 
-    // ----- Delegate to LLM planner for sales-focused dialog -----
-    call.history.push({ role: 'user', content: text });
-    let plan = await aiPlan(call.history, call.state);
+    // ---------- Two-phase handling with background planning ----------
+    // Phase 1: no pending plan yet -> start background AI call, play filler, and gather again.
+    if (!call.state.pendingPlan && !call.state.planning) {
+      call.history.push({ role: 'user', content: text });
+      call.state.planning = true;
+      call.state.phase = 'waitingPlan';
+      const stateSnapshot = { ...call.state };
+      const historySnapshot = [...call.history];
 
-    // Apply updates
-    call.state = { ...call.state, ...(plan.updates || {}) };
-    plan.reply = sanitizeReply(plan.reply, call.state);
+      // Fire-and-forget background planner
+      aiPlan(historySnapshot, stateSnapshot)
+        .then(plan => {
+          plan = plan || {};
+          const updates = plan.updates || {};
+          const current = calls.get(sid);
+          if (!current) return;
+          current.state = {
+            ...current.state,
+            ...updates,
+            pendingPlan: {
+              action: plan.action || 'ASK',
+              reply: plan.reply || ''
+            },
+            planning: false
+          };
+          calls.set(sid, current);
+        })
+        .catch(err => {
+          console.error('Background planner error:', err);
+          const current = calls.get(sid);
+          if (!current) return;
+          current.state.planning = false;
+          calls.set(sid, current);
+        });
 
-    if (plan.action === 'END') {
       const vr = new VoiceResponse();
-      const msg = plan.reply || `Thanks for calling ${COMPANY}. Have a great day!`;
       const filler = pickFiller();
       if (filler) {
         play(vr, filler);
-        vr.pause({ length: 1 });
+        vr.pause({ length: 2 });
       }
-      const url = await tts(msg);
+      const url = await tts(`Got it. Give me just a moment while I check this for you.`);
       play(vr, url);
-      vr.hangup();
-      call.state.endedAt = Date.now();
+      gather(vr, '/gather');
+      call.state.lastPromptAt = Date.now();
       calls.set(sid, call);
       return res.type('text/xml').send(vr.toString());
     }
 
-    // ASK (default or explicit)
+    // Phase 2: we have a pending plan ready -> use it to respond.
+    if (call.state.pendingPlan) {
+      const plan = {
+        action: call.state.pendingPlan.action || 'ASK',
+        reply: sanitizeReply(call.state.pendingPlan.reply || '', call.state)
+      };
+      call.state.pendingPlan = null;
+      call.state.phase = 'normal';
+
+      if (plan.action === 'END') {
+        const vr = new VoiceResponse();
+        const msg = plan.reply || `Thanks for calling ${COMPANY}. Have a great day!`;
+        const filler = pickFiller();
+        if (filler) {
+          play(vr, filler);
+          vr.pause({ length: 1 });
+        }
+        const url = await tts(msg);
+        play(vr, url);
+        vr.hangup();
+        call.state.endedAt = Date.now();
+        calls.set(sid, call);
+        return res.type('text/xml').send(vr.toString());
+      }
+
+      // ASK (default)
+      {
+        const vr = new VoiceResponse();
+        const msg = plan.reply || `Could you tell me a little more about what you need help with?`;
+        const filler = pickFiller();
+        if (filler) {
+          play(vr, filler);
+          vr.pause({ length: 1 });
+        }
+        const url = await tts(msg);
+        play(vr, url);
+        gather(vr, '/gather');
+        call.state.lastPromptAt = Date.now();
+        calls.set(sid, call);
+        return res.type('text/xml').send(vr.toString());
+      }
+    }
+
+    // Fallback: planning still in progress but no plan yet -> keep caller warm.
     {
       const vr = new VoiceResponse();
-      const msg = plan.reply || `Could you tell me a little more about what you need help with?`;
       const filler = pickFiller();
       if (filler) {
         play(vr, filler);
-        vr.pause({ length: 1 });
+        vr.pause({ length: 2 });
       }
-      const url = await tts(msg);
+      const url = await tts(`I'm just finishing checking that. One more moment, please.`);
       play(vr, url);
       gather(vr, '/gather');
       call.state.lastPromptAt = Date.now();
