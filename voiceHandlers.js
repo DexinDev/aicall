@@ -214,11 +214,6 @@ export async function handleGather(req, res) {
           const action = plan.action || 'ASK';
 
           const vr2 = new VoiceResponse();
-          const filler2 = pickFiller();
-          if (filler2) {
-            play(vr2, filler2);
-            vr2.pause({ length: 1 });
-          }
           const url = await tts(reply);
           play(vr2, url);
 
@@ -239,11 +234,6 @@ export async function handleGather(req, res) {
           const current = calls.get(sid);
           if (!current || !twilioClient) return;
           const vrErr = new VoiceResponse();
-          const fillerErr = pickFiller();
-          if (fillerErr) {
-            play(vrErr, fillerErr);
-            vrErr.pause({ length: 1 });
-          }
           const urlErr = await tts(`Sorry, I had a glitch. Want to try that again?`);
           play(vrErr, urlErr);
           gather(vrErr, '/gather');
@@ -255,14 +245,12 @@ export async function handleGather(req, res) {
       })();
     }
 
-    // Немедленный ответ: один короткий филлер + пауза, без Gather.
+    // Немедленный ответ: один короткий филлер, без Gather и без длинной паузы.
     const vr = new VoiceResponse();
     const filler = pickFiller();
     if (filler) {
       play(vr, filler);
     }
-    // Держим звонок живым, пока не придёт REST-обновление с реальным ответом.
-    vr.pause({ length: 60 });
     return res.type('text/xml').send(vr.toString());
 
   } catch (e) {
