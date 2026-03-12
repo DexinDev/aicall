@@ -64,6 +64,14 @@ export async function handleVoiceEntry(req, res) {
   
   const vr = new VoiceResponse();
 
+  // Start recording the call with callback to /recording
+  const start = vr.start();
+  start.record({
+    recordingStatusCallback: 'https://ai-call.on-forge.com/recording',
+    recordingStatusCallbackMethod: 'POST',
+    recordingTrack: 'both'
+  });
+
   // Play pre-recorded intro (includes greeting and recording notice)
   play(vr, '/media/intro.mp3');
   gather(vr, '/gather');
