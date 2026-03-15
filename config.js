@@ -21,7 +21,7 @@ export const BUFFER_MIN = parseInt(process.env.MIN_BUFFER_MIN || '120', 10); // 
 
 // Voice fillers (play only when OpenAI response is slow)
 export const FILLERS_ENABLED = process.env.FILLERS_ENABLED !== 'false' && process.env.FILLERS_ENABLED !== '0';
-export const FILLER_DELAY_MS = parseInt(process.env.FILLER_DELAY_MS || '1000', 10); // play filler only if OpenAI took longer than this (ms)
+export const FILLER_DELAY_MS = parseInt(process.env.FILLER_DELAY_MS || '1000', 10); // if no OpenAI response after this many ms, send filler to fill the silence (then TTS when ready)
 
 // Twilio Gather / STT tuning
 export const GATHER_TIMEOUT_SEC = parseInt(process.env.GATHER_TIMEOUT_SEC || '10', 10); // wait for speech start

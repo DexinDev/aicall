@@ -30,12 +30,15 @@ function pickFiller() {
   return FILLER_FILES[idx];
 }
 
-/** Play filler only when OpenAI took longer than FILLER_DELAY_MS. Uses absolute URL so Twilio can fetch audio when TwiML is sent via calls.update(). */
-function maybePlayFiller(vr, openaiDurationMs) {
-  if (FILLERS_ENABLED && openaiDurationMs >= FILLER_DELAY_MS && BASE_URL) {
+/** Build TwiML that plays one filler (absolute URL) then pause. Used to fill silence while waiting for OpenAI. */
+function buildFillerThenPauseTwiML() {
+  const vr = new VoiceResponse();
+  if (FILLERS_ENABLED && BASE_URL) {
     const f = pickFiller();
     if (f) play(vr, BASE_URL + f);
   }
+  vr.pause({ length: 120 });
+  return vr;
 }
 
 function extractZipFromSpeech(text) {
@@ -243,10 +246,20 @@ export async function handleGather(req, res) {
 
     if (twilioClient) {
       (async () => {
+        let openaiDone = false;
+        const fillerTimer = setTimeout(() => {
+          if (openaiDone) return;
+          const cur = calls.get(sid);
+          if (!cur) return;
+          const vrFiller = buildFillerThenPauseTwiML();
+          twilioClient.calls(sid).update({ twiml: vrFiller.toString() }).catch(err => console.error('Filler update error:', err));
+        }, FILLER_DELAY_MS);
+
         try {
-          const openaiStart = Date.now();
           let plan = await aiPlan(historySnapshot, stateSnapshot);
-          const openaiDurationMs = Date.now() - openaiStart;
+          openaiDone = true;
+          clearTimeout(fillerTimer);
+
           plan = plan || {};
           const updates = plan.updates || {};
 
@@ -267,7 +280,6 @@ export async function handleGather(req, res) {
           const action = plan.action || 'ASK';
 
           const vr2 = new VoiceResponse();
-          maybePlayFiller(vr2, openaiDurationMs);
           const url = await tts(reply);
           play(vr2, url);
 
@@ -292,7 +304,7 @@ export async function handleGather(req, res) {
       })();
     }
 
-    // Немедленный ответ: пауза, чтобы звонок оставался in-progress до calls.update (филлер добавится в update только если OpenAI ответил дольше FILLER_DELAY_MS).
+    // Немедленный ответ: пауза, чтобы звонок оставался in-progress. Через FILLER_DELAY_MS без ответа от OpenAI отправится филлер (calls.update); когда ответ придёт — отправится TTS + gather.
     const vr = new VoiceResponse();
     vr.pause({ length: 120 });
     return res.type('text/xml').send(vr.toString());
