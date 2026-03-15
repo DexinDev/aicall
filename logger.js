@@ -7,15 +7,15 @@ export function logApiCall(service, action, startTime, endTime, details = {}) {
   console.log(`   Duration: ${duration}ms`);
   
   if (details.prompt) {
-    console.log(`   Prompt: ${details.prompt.substring(0, 100)}${details.prompt.length > 100 ? '...' : ''}`);
+    console.log(`   Prompt: ${details.prompt}`);
   }
   
   if (details.text) {
-    console.log(`   Text: ${details.text.substring(0, 100)}${details.text.length > 100 ? '...' : ''}`);
+    console.log(`   Text: ${details.text}`);
   }
   
   if (details.response) {
-    console.log(`   Response: ${details.response.substring(0, 100)}${details.response.length > 100 ? '...' : ''}`);
+    console.log(`   Response: ${details.response}`);
   }
   
   if (details.error) {
