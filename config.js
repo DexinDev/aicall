@@ -29,9 +29,10 @@ export const GATHER_SPEECH_TIMEOUT = process.env.GATHER_SPEECH_TIMEOUT || 'auto'
 export const GATHER_SPEECH_MODEL = process.env.GATHER_SPEECH_MODEL || '';
 
 // Calls & notifications
+export const BASE_URL = (process.env.BASE_URL || '').replace(/\/$/, ''); // no trailing slash
 export const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 export const TELEGRAM_CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID || '';
-export const CALLS_BASE_URL = process.env.CALLS_BASE_URL || `${process.env.BASE_URL || ''}/calls`;
+export const CALLS_BASE_URL = process.env.CALLS_BASE_URL || `${BASE_URL || ''}/calls`;
 export const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || '';
 export const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || '';
 

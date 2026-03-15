@@ -1,6 +1,6 @@
 import twilio from 'twilio';
 const { VoiceResponse } = twilio.twiml;
-import { COMPANY, FILLER_DELAY_MS, FILLERS_ENABLED, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT, GATHER_SPEECH_MODEL, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } from './config.js';
+import { BASE_URL, COMPANY, FILLER_DELAY_MS, FILLERS_ENABLED, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT, GATHER_SPEECH_MODEL, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } from './config.js';
 import { tts } from './tts.js';
 import { aiPlan, sanitizeReply } from './aiPlanner.js';
 import { lookupZip } from './zipCoverage.js';
@@ -30,11 +30,11 @@ function pickFiller() {
   return FILLER_FILES[idx];
 }
 
-/** Play filler only when OpenAI took longer than FILLER_DELAY_MS. */
+/** Play filler only when OpenAI took longer than FILLER_DELAY_MS. Uses absolute URL so Twilio can fetch audio when TwiML is sent via calls.update(). */
 function maybePlayFiller(vr, openaiDurationMs) {
-  if (FILLERS_ENABLED && openaiDurationMs >= FILLER_DELAY_MS) {
+  if (FILLERS_ENABLED && openaiDurationMs >= FILLER_DELAY_MS && BASE_URL) {
     const f = pickFiller();
-    if (f) play(vr, f);
+    if (f) play(vr, BASE_URL + f);
   }
 }
 
@@ -103,7 +103,7 @@ export async function handleVoiceEntry(req, res) {
     (async () => {
       try {
         await twilioClient.calls(req.body.CallSid).recordings.create({
-          recordingStatusCallback: 'https://ai-call.on-forge.com/recording',
+          recordingStatusCallback: (BASE_URL || 'https://ai-call.on-forge.com') + '/recording',
           recordingStatusCallbackMethod: 'POST'
         });
       } catch (err) {
@@ -278,7 +278,7 @@ export async function handleGather(req, res) {
           } else {
             // Для REST-обновления TwiML нужен абсолютный URL для action,
             // иначе Twilio не знает, куда отправлять следующий gather.
-            gather(vr2, 'https://ai-call.on-forge.com/gather');
+            gather(vr2, (BASE_URL || 'https://ai-call.on-forge.com') + '/gather');
             current.state.lastPromptAt = Date.now();
             current.state.mode = 'waiting_user';
           }
