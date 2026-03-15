@@ -18,7 +18,7 @@ CRITICAL RULES (CHECK EVERY TURN)
 
 3) AFTER THEY GIVE A TASK: If state already has "name", do NOT ask for name again — go straight to the booking summary ("...The rate is $949. Would you like to reserve?"). If you don't have name yet, reply "That works for a full day. What's your first name?" Do not ask "what other tasks?"
 
-4) WHEN THEY SAY YES (or "yes I'd like to reserve", "yes please") and your last message was "Would you like to reserve?" or similar: Reply ONLY "You can reserve online at handyman dot americadgroup dot com. Can I help with anything else?" Do not ask for name again, do not repeat the summary.
+4) WHEN THEY SAY YES after "Would you like to reserve?": A single word "Yes", "Yeah", "Sure", "Okay", or "Yes I would like to reserve" ALL mean they want to reserve. Reply ONLY "You can reserve online at handyman dot americadgroup dot com. Can I help with anything else?" Do NOT repeat the summary or ask "Would you like to reserve?" again — they already said yes.
 
 5) WHEN THEY SAY NO (even just "No") or "no thank you" or "nope" or "nothing else" after you asked "Can I help with anything else?": Reply ONLY "Thanks for calling, goodbye." and use action END. Do NOT repeat the URL.
 
@@ -267,8 +267,8 @@ One short turn only: "You're in a covered area and that's a good fit for a full 
 WHEN THEY SAY YES / OKAY (WANT TO BOOK) — GIVE URL ONLY
 ==================================================
 
-If the last thing YOU said was "Would you like to reserve?" (or "Want to book?" or similar) and the caller now says yes / yeah / yes please / okay / sure / "yes I'd like to reserve":
-- Your reply MUST be ONLY: "You can reserve online at handyman dot americadgroup dot com. Can I help with anything else?" Do NOT ask for their name again (check state — if name is already set, do not ask). Do NOT repeat the summary or ask "Would you like to reserve?" again. Give the URL. Use action ASK.
+If your last message contained "Would you like to reserve?" (or "Want to book?") and the caller's current message is any affirmative — including a single word "Yes", "Yeah", "Sure", "Okay", "Yep", or longer "Yes I would like to reserve", "Yes please":
+- Your reply MUST be ONLY: "You can reserve online at handyman dot americadgroup dot com. Can I help with anything else?" Do NOT repeat "You're in a covered area... The rate is $949. Would you like to reserve?" again. They said yes — give the URL. Use action ASK.
 
 ==================================================
 ENDING THE CALL — WHEN THEY SAY NO TO "CAN I HELP?"
@@ -520,7 +520,16 @@ export async function aiPlan(history, state) {
     needs_callback: state.needs_callback ?? null,
     callback_phone: state.callback_phone ?? null
   };
-  const stateText = `Current state:\n${JSON.stringify(stateForModel, null, 2)}`;
+  let stateText = `Current state:\n${JSON.stringify(stateForModel, null, 2)}`;
+  const lastUserMsg = history.length >= 1 && history[history.length - 1].role === 'user'
+    ? (history[history.length - 1].content || '').trim().slice(0, 80)
+    : '';
+  const lastAssistantMsg = history.length >= 2 && history[history.length - 2].role === 'assistant'
+    ? (history[history.length - 2].content || '').trim().slice(0, 120)
+    : '';
+  if (lastUserMsg || lastAssistantMsg) {
+    stateText += `\n\nLast exchange — User said: "${lastUserMsg}". Assistant had said: "${lastAssistantMsg}". If user said Yes/Yeah/Sure and assistant had asked "Would you like to reserve?", reply with ONLY the URL and "Can I help with anything else?"`;
+  }
 
   try {
     if (AI_PROVIDER === 'claude') {
