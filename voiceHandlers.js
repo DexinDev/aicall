@@ -1,6 +1,6 @@
 import twilio from 'twilio';
 const { VoiceResponse } = twilio.twiml;
-import { COMPANY, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT, GATHER_SPEECH_MODEL, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } from './config.js';
+import { COMPANY, FILLERS_ENABLED, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT, GATHER_SPEECH_MODEL, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } from './config.js';
 import { tts } from './tts.js';
 import { aiPlan, sanitizeReply } from './aiPlanner.js';
 import { lookupZip } from './zipCoverage.js';
@@ -25,7 +25,7 @@ const FILLER_FILES = [
 ];
 
 function pickFiller() {
-  if (!FILLER_FILES.length) return null;
+  if (!FILLERS_ENABLED || !FILLER_FILES.length) return null;
   const idx = Math.floor(Math.random() * FILLER_FILES.length);
   return FILLER_FILES[idx];
 }
