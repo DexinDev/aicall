@@ -15,7 +15,8 @@ export function normalizeCanonicalUrls(text) {
     PARTNERS: "america d group dot com slash partners",
     FAQ: "america d group dot com slash f-a-q",
     SITE: "america d group dot com",
-    EMAIL: "info at america d group dot com"
+    EMAIL: "info at america d group dot com",
+    BOOKING: "full day handyman dot com"
   };
 
   // Careers
@@ -32,6 +33,10 @@ export function normalizeCanonicalUrls(text) {
 
   // Root site
   t = t.replace(/americadgroup\.com/gi, canon.SITE);
+
+  // Booking page (spoken clearly: full day handyman dot com)
+  t = t.replace(/fulldayhandyman\s*dot\s*com/gi, canon.BOOKING);
+  t = t.replace(/fulldayhandyman\.com/gi, canon.BOOKING);
 
   // Email
   t = t.replace(/info@americadgroup\.com/gi, canon.EMAIL);
