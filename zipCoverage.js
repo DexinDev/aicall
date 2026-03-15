@@ -390,4 +390,705 @@ const RAW_ZIP_DATA = `
 05672|Lamoille County, VT
 05673|Washington County, VT
 05674|Washington County, VT
-56
+05675|Orange County, VT
+05676|Washington County, VT
+05677|Washington County, VT
+05678|Washington County, VT
+05679|Orange County, VT
+05680|Lamoille County, VT
+05681|Washington County, VT
+05682|Washington County, VT
+07002|Hudson County, NJ
+07003|Essex County, MA
+07004|Essex County, MA
+07006|Essex County, MA
+07009|Essex County, MA
+07010|Bergen County, NJ
+07011|Passaic County, NJ
+07012|Passaic County, NJ
+07013|Passaic County, NJ
+07014|Passaic County, NJ
+07016|Union County, NJ
+07017|Essex County, MA
+07018|Essex County, MA
+07020|Bergen County, NJ
+07021|Essex County, MA
+07022|Bergen County, NJ
+07023|Union County, NJ
+07024|Bergen County, NJ
+07026|Bergen County, NJ
+07027|Union County, NJ
+07028|Essex County, MA
+07029|Hudson County, NJ
+07030|Hudson County, NJ
+07031|Bergen County, NJ
+07032|Hudson County, NJ
+07033|Union County, NJ
+07036|Union County, NJ
+07039|Essex County, MA
+07040|Essex County, MA
+07041|Essex County, MA
+07042|Essex County, MA
+07043|Essex County, MA
+07044|Essex County, MA
+07047|Hudson County, NJ
+07050|Essex County, MA
+07052|Essex County, MA
+07055|Passaic County, NJ
+07057|Bergen County, NJ
+07060|Union County, NJ
+07062|Union County, NJ
+07063|Union County, NJ
+07065|Union County, NJ
+07066|Union County, NJ
+07068|Essex County, MA
+07070|Bergen County, NJ
+07071|Bergen County, NJ
+07072|Bergen County, NJ
+07073|Bergen County, NJ
+07074|Bergen County, NJ
+07075|Bergen County, NJ
+07076|Union County, NJ
+07078|Essex County, MA
+07079|Essex County, MA
+07081|Union County, NJ
+07083|Union County, NJ
+07086|Hudson County, NJ
+07087|Hudson County, NJ
+07088|Union County, NJ
+07090|Union County, NJ
+07092|Union County, NJ
+07093|Hudson County, NJ
+07094|Hudson County, NJ
+07102|Essex County, MA
+07103|Essex County, MA
+07104|Essex County, MA
+07105|Essex County, MA
+07106|Essex County, MA
+07107|Essex County, MA
+07108|Essex County, MA
+07109|Essex County, MA
+07110|Essex County, MA
+07111|Essex County, MA
+07112|Essex County, MA
+07114|Essex County, MA
+07201|Union County, NJ
+07202|Union County, NJ
+07203|Union County, NJ
+07204|Union County, NJ
+07205|Union County, NJ
+07206|Union County, NJ
+07208|Union County, NJ
+07302|Hudson County, NJ
+07304|Hudson County, NJ
+07305|Hudson County, NJ
+07306|Hudson County, NJ
+07307|Hudson County, NJ
+07310|Hudson County, NJ
+07311|Hudson County, NJ
+07401|Bergen County, NJ
+07403|Passaic County, NJ
+07407|Bergen County, NJ
+07410|Bergen County, NJ
+07417|Bergen County, NJ
+07420|Passaic County, NJ
+07421|Passaic County, NJ
+07423|Bergen County, NJ
+07424|Passaic County, NJ
+07430|Bergen County, NJ
+07432|Bergen County, NJ
+07435|Passaic County, NJ
+07436|Bergen County, NJ
+07442|Passaic County, NJ
+07446|Bergen County, NJ
+07450|Bergen County, NJ
+07452|Bergen County, NJ
+07456|Passaic County, NJ
+07458|Bergen County, NJ
+07463|Bergen County, NJ
+07465|Passaic County, NJ
+07470|Passaic County, NJ
+07480|Passaic County, NJ
+07481|Bergen County, NJ
+07501|Passaic County, NJ
+07502|Passaic County, NJ
+07503|Passaic County, NJ
+07504|Passaic County, NJ
+07505|Passaic County, NJ
+07506|Passaic County, NJ
+07508|Passaic County, NJ
+07512|Passaic County, NJ
+07513|Passaic County, NJ
+07514|Passaic County, NJ
+07522|Passaic County, NJ
+07524|Passaic County, NJ
+07601|Bergen County, NJ
+07603|Bergen County, NJ
+07604|Bergen County, NJ
+07605|Bergen County, NJ
+07606|Bergen County, NJ
+07607|Bergen County, NJ
+07608|Bergen County, NJ
+07620|Bergen County, NJ
+07621|Bergen County, NJ
+07624|Bergen County, NJ
+07626|Bergen County, NJ
+07627|Bergen County, NJ
+07628|Bergen County, NJ
+07630|Bergen County, NJ
+07631|Bergen County, NJ
+07632|Bergen County, NJ
+07640|Bergen County, NJ
+07641|Bergen County, NJ
+07642|Bergen County, NJ
+07643|Bergen County, NJ
+07644|Bergen County, NJ
+07645|Bergen County, NJ
+07646|Bergen County, NJ
+07647|Bergen County, NJ
+07648|Bergen County, NJ
+07649|Bergen County, NJ
+07650|Bergen County, NJ
+07652|Bergen County, NJ
+07656|Bergen County, NJ
+07657|Bergen County, NJ
+07660|Bergen County, NJ
+07661|Bergen County, NJ
+07662|Bergen County, NJ
+07663|Bergen County, NJ
+07666|Bergen County, NJ
+07670|Bergen County, NJ
+07675|Bergen County, NJ
+07676|Bergen County, NJ
+07677|Bergen County, NJ
+07901|Union County, NJ
+07922|Union County, NJ
+07974|Union County, NJ
+20001|Washington, DC
+20002|Washington, DC
+20003|Washington, DC
+20004|Washington, DC
+20005|Washington, DC
+20006|Washington, DC
+20007|Washington, DC
+20008|Washington, DC
+20009|Washington, DC
+20010|Washington, DC
+20011|Washington, DC
+20012|Washington, DC
+20015|Washington, DC
+20016|Washington, DC
+20017|Washington, DC
+20018|Washington, DC
+20019|Washington, DC
+20020|Washington, DC
+20024|Washington, DC
+20032|Washington, DC
+20036|Washington, DC
+20037|Washington, DC
+20045|Washington, DC
+20120|Fairfax County
+20121|Fairfax County
+20124|Fairfax County
+20151|Fairfax County
+20170|Fairfax County
+20171|Fairfax County
+20190|Fairfax County
+20191|Fairfax County
+20194|Fairfax County
+20812|Montgomery County, MD
+20814|Montgomery County, MD
+20815|Montgomery County, MD
+20816|Montgomery County, MD
+20817|Montgomery County, MD
+20818|Montgomery County, MD
+20832|Montgomery County, MD
+20833|Montgomery County, MD
+20837|Montgomery County, MD
+20838|Montgomery County, MD
+20839|Montgomery County, MD
+20841|Montgomery County, MD
+20842|Montgomery County, MD
+20850|Montgomery County, MD
+20851|Montgomery County, MD
+20852|Montgomery County, MD
+20853|Montgomery County, MD
+20854|Montgomery County, MD
+20855|Montgomery County, MD
+20860|Montgomery County, MD
+20861|Montgomery County, MD
+20862|Montgomery County, MD
+20866|Montgomery County, MD
+20868|Montgomery County, MD
+20871|Montgomery County, MD
+20872|Montgomery County, MD
+20874|Montgomery County, MD
+20876|Montgomery County, MD
+20877|Montgomery County, MD
+20878|Montgomery County, MD
+20879|Montgomery County, MD
+20880|Montgomery County, MD
+20882|Montgomery County, MD
+20886|Montgomery County, MD
+20895|Montgomery County, MD
+20896|Montgomery County, MD
+20901|Montgomery County, MD
+20902|Montgomery County, MD
+20903|Montgomery County, MD
+20904|Montgomery County, MD
+20905|Montgomery County, MD
+20906|Montgomery County, MD
+20910|Montgomery County, MD
+20912|Montgomery County, MD
+22003|Fairfax County
+22015|Fairfax County
+22027|Fairfax County
+22030|Fairfax County
+22031|Fairfax County
+22032|Fairfax County
+22033|Fairfax County
+22035|Fairfax County
+22039|Fairfax County
+22041|Fairfax County
+22042|Fairfax County
+22043|Fairfax County
+22044|Fairfax County
+22060|Fairfax County
+22066|Fairfax County
+22079|Fairfax County
+22101|Fairfax County
+22102|Fairfax County
+22124|Fairfax County
+22150|Fairfax County
+22151|Fairfax County
+22152|Fairfax County
+22153|Fairfax County
+22180|Fairfax County
+22181|Fairfax County
+22182|Fairfax County
+22201|Arlington County
+22202|Arlington County
+22203|Arlington County
+22204|Arlington County
+22205|Arlington County
+22206|Arlington County
+22207|Arlington County
+22209|Arlington County
+22211|Arlington County
+22213|Arlington County
+22303|Fairfax County
+22306|Fairfax County
+22307|Fairfax County
+22308|Fairfax County
+22309|Fairfax County
+22310|Fairfax County
+22312|Fairfax County
+22315|Fairfax County
+33004|Broward County, FL
+33009|Broward County, FL
+33010|Miami-Dade County, FL
+33012|Miami-Dade County, FL
+33013|Miami-Dade County, FL
+33014|Miami-Dade County, FL
+33015|Miami-Dade County, FL
+33016|Miami-Dade County, FL
+33018|Miami-Dade County, FL
+33019|Broward County, FL
+33020|Broward County, FL
+33021|Broward County, FL
+33022|Broward County, FL
+33023|Broward County, FL
+33024|Broward County, FL
+33025|Broward County, FL
+33026|Broward County, FL
+33027|Broward County, FL
+33028|Broward County, FL
+33029|Broward County, FL
+33030|Miami-Dade County, FL
+33031|Miami-Dade County, FL
+33032|Miami-Dade County, FL
+33033|Miami-Dade County, FL
+33034|Miami-Dade County, FL
+33035|Miami-Dade County, FL
+33054|Miami-Dade County, FL
+33055|Miami-Dade County, FL
+33056|Miami-Dade County, FL
+33060|Broward County, FL
+33062|Broward County, FL
+33063|Broward County, FL
+33064|Broward County, FL
+33065|Broward County, FL
+33066|Broward County, FL
+33067|Broward County, FL
+33068|Broward County, FL
+33069|Broward County, FL
+33071|Broward County, FL
+33073|Broward County, FL
+33076|Broward County, FL
+33101|Miami-Dade County, FL
+33109|Miami-Dade County, FL
+33122|Miami-Dade County, FL
+33125|Miami-Dade County, FL
+33126|Miami-Dade County, FL
+33127|Miami-Dade County, FL
+33128|Miami-Dade County, FL
+33129|Miami-Dade County, FL
+33130|Miami-Dade County, FL
+33131|Miami-Dade County, FL
+33132|Miami-Dade County, FL
+33133|Miami-Dade County, FL
+33134|Miami-Dade County, FL
+33135|Miami-Dade County, FL
+33136|Miami-Dade County, FL
+33137|Miami-Dade County, FL
+33138|Miami-Dade County, FL
+33139|Miami-Dade County, FL
+33140|Miami-Dade County, FL
+33141|Miami-Dade County, FL
+33142|Miami-Dade County, FL
+33143|Miami-Dade County, FL
+33144|Miami-Dade County, FL
+33145|Miami-Dade County, FL
+33146|Miami-Dade County, FL
+33147|Miami-Dade County, FL
+33149|Miami-Dade County, FL
+33150|Miami-Dade County, FL
+33154|Miami-Dade County, FL
+33155|Miami-Dade County, FL
+33156|Miami-Dade County, FL
+33157|Miami-Dade County, FL
+33158|Miami-Dade County, FL
+33160|Miami-Dade County, FL
+33161|Miami-Dade County, FL
+33162|Miami-Dade County, FL
+33165|Miami-Dade County, FL
+33166|Miami-Dade County, FL
+33167|Miami-Dade County, FL
+33168|Miami-Dade County, FL
+33169|Miami-Dade County, FL
+33170|Miami-Dade County, FL
+33172|Miami-Dade County, FL
+33173|Miami-Dade County, FL
+33174|Miami-Dade County, FL
+33175|Miami-Dade County, FL
+33176|Miami-Dade County, FL
+33177|Miami-Dade County, FL
+33178|Miami-Dade County, FL
+33179|Miami-Dade County, FL
+33180|Miami-Dade County, FL
+33181|Miami-Dade County, FL
+33182|Miami-Dade County, FL
+33183|Miami-Dade County, FL
+33184|Miami-Dade County, FL
+33185|Miami-Dade County, FL
+33186|Miami-Dade County, FL
+33187|Miami-Dade County, FL
+33189|Miami-Dade County, FL
+33190|Miami-Dade County, FL
+33193|Miami-Dade County, FL
+33194|Miami-Dade County, FL
+33196|Miami-Dade County, FL
+33301|Broward County, FL
+33304|Broward County, FL
+33305|Broward County, FL
+33306|Broward County, FL
+33308|Broward County, FL
+33309|Broward County, FL
+33311|Broward County, FL
+33312|Broward County, FL
+33313|Broward County, FL
+33314|Broward County, FL
+33315|Broward County, FL
+33316|Broward County, FL
+33317|Broward County, FL
+33319|Broward County, FL
+33321|Broward County, FL
+33322|Broward County, FL
+33323|Broward County, FL
+33324|Broward County, FL
+33325|Broward County, FL
+33326|Broward County, FL
+33327|Broward County, FL
+33328|Broward County, FL
+33330|Broward County, FL
+33331|Broward County, FL
+33332|Broward County, FL
+33334|Broward County, FL
+33351|Broward County, FL
+33388|Broward County, FL
+33401|Palm Beach County, FL
+33403|Palm Beach County, FL
+33404|Palm Beach County, FL
+33405|Palm Beach County, FL
+33406|Palm Beach County, FL
+33407|Palm Beach County, FL
+33408|Palm Beach County, FL
+33409|Palm Beach County, FL
+33410|Palm Beach County, FL
+33411|Palm Beach County, FL
+33412|Palm Beach County, FL
+33413|Palm Beach County, FL
+33414|Palm Beach County, FL
+33415|Palm Beach County, FL
+33417|Palm Beach County, FL
+33418|Palm Beach County, FL
+33426|Palm Beach County, FL
+33428|Palm Beach County, FL
+33430|Palm Beach County, FL
+33431|Palm Beach County, FL
+33432|Palm Beach County, FL
+33433|Palm Beach County, FL
+33434|Palm Beach County, FL
+33435|Palm Beach County, FL
+33436|Palm Beach County, FL
+33437|Palm Beach County, FL
+33438|Martin County, FL
+33441|Broward County, FL
+33442|Broward County, FL
+33444|Palm Beach County, FL
+33445|Palm Beach County, FL
+33446|Palm Beach County, FL
+33449|Palm Beach County, FL
+33455|Martin County, FL
+33458|Palm Beach County, FL
+33460|Palm Beach County, FL
+33461|Palm Beach County, FL
+33462|Palm Beach County, FL
+33463|Palm Beach County, FL
+33467|Palm Beach County, FL
+33469|Martin County, FL
+33470|Palm Beach County, FL
+33472|Palm Beach County, FL
+33473|Palm Beach County, FL
+33476|Palm Beach County, FL
+33477|Palm Beach County, FL
+33478|Palm Beach County, FL
+33480|Palm Beach County, FL
+33483|Palm Beach County, FL
+33484|Palm Beach County, FL
+33486|Palm Beach County, FL
+33487|Palm Beach County, FL
+33493|Palm Beach County, FL
+33496|Palm Beach County, FL
+33498|Palm Beach County, FL
+34956|Martin County, FL
+34990|Martin County, FL
+34994|Martin County, FL
+34996|Martin County, FL
+34997|Martin County, FL
+94002|San Mateo County, CA
+94005|San Mateo County, CA
+94010|San Mateo County, CA
+94014|San Mateo County, CA
+94015|San Mateo County, CA
+94018|San Mateo County, CA
+94019|San Mateo County, CA
+94020|San Mateo County, CA
+94021|San Mateo County, CA
+94022|Santa Clara County, CA
+94024|Santa Clara County, CA
+94025|San Mateo County, CA
+94027|San Mateo County, CA
+94028|San Mateo County, CA
+94030|San Mateo County, CA
+94037|San Mateo County, CA
+94038|San Mateo County, CA
+94040|Santa Clara County, CA
+94041|Santa Clara County, CA
+94043|Santa Clara County, CA
+94044|San Mateo County, CA
+94060|San Mateo County, CA
+94061|San Mateo County, CA
+94062|San Mateo County, CA
+94063|San Mateo County, CA
+94065|San Mateo County, CA
+94066|San Mateo County, CA
+94070|San Mateo County, CA
+94074|San Mateo County, CA
+94080|San Mateo County, CA
+94085|Santa Clara County, CA
+94086|Santa Clara County, CA
+94087|Santa Clara County, CA
+94089|Santa Clara County, CA
+94102|San Francisco County, CA
+94103|San Francisco County, CA
+94104|San Francisco County, CA
+94105|San Francisco County, CA
+94107|San Francisco County, CA
+94108|San Francisco County, CA
+94109|San Francisco County, CA
+94110|San Francisco County, CA
+94111|San Francisco County, CA
+94112|San Francisco County, CA
+94114|San Francisco County, CA
+94115|San Francisco County, CA
+94116|San Francisco County, CA
+94117|San Francisco County, CA
+94118|San Francisco County, CA
+94121|San Francisco County, CA
+94122|San Francisco County, CA
+94123|San Francisco County, CA
+94124|San Francisco County, CA
+94127|San Francisco County, CA
+94128|San Mateo County, CA
+94129|San Francisco County, CA
+94130|San Francisco County, CA
+94131|San Francisco County, CA
+94132|San Francisco County, CA
+94133|San Francisco County, CA
+94134|San Francisco County, CA
+94158|San Francisco County, CA
+94188|San Francisco County, CA
+94301|Santa Clara County, CA
+94303|Santa Clara County, CA
+94304|Santa Clara County, CA
+94305|Santa Clara County, CA
+94306|Santa Clara County, CA
+94401|San Mateo County, CA
+94402|San Mateo County, CA
+94403|San Mateo County, CA
+94404|San Mateo County, CA
+94901|Marin County, CA
+94903|Marin County, CA
+94904|Marin County, CA
+94920|Marin County, CA
+94924|Marin County, CA
+94925|Marin County, CA
+94929|Marin County, CA
+94930|Marin County, CA
+94933|Marin County, CA
+94937|Marin County, CA
+94938|Marin County, CA
+94939|Marin County, CA
+94940|Marin County, CA
+94941|Marin County, CA
+94945|Marin County, CA
+94946|Marin County, CA
+94947|Marin County, CA
+94949|Marin County, CA
+94950|Marin County, CA
+94952|Marin County, CA
+94956|Marin County, CA
+94957|Marin County, CA
+94960|Marin County, CA
+94963|Marin County, CA
+94964|Marin County, CA
+94965|Marin County, CA
+94970|Marin County, CA
+94971|Marin County, CA
+94973|Marin County, CA
+95002|Santa Clara County, CA
+95008|Santa Clara County, CA
+95013|Santa Clara County, CA
+95014|Santa Clara County, CA
+95020|Santa Clara County, CA
+95030|Santa Clara County, CA
+95032|Santa Clara County, CA
+95035|Santa Clara County, CA
+95037|Santa Clara County, CA
+95046|Santa Clara County, CA
+95050|Santa Clara County, CA
+95051|Santa Clara County, CA
+95054|Santa Clara County, CA
+95070|Santa Clara County, CA
+95110|Santa Clara County, CA
+95111|Santa Clara County, CA
+95112|Santa Clara County, CA
+95113|Santa Clara County, CA
+95116|Santa Clara County, CA
+95117|Santa Clara County, CA
+95118|Santa Clara County, CA
+95119|Santa Clara County, CA
+95120|Santa Clara County, CA
+95121|Santa Clara County, CA
+95122|Santa Clara County, CA
+95123|Santa Clara County, CA
+95124|Santa Clara County, CA
+95125|Santa Clara County, CA
+95126|Santa Clara County, CA
+95127|Santa Clara County, CA
+95128|Santa Clara County, CA
+95129|Santa Clara County, CA
+95130|Santa Clara County, CA
+95131|Santa Clara County, CA
+95132|Santa Clara County, CA
+95133|Santa Clara County, CA
+95134|Santa Clara County, CA
+95135|Santa Clara County, CA
+95136|Santa Clara County, CA
+95138|Santa Clara County, CA
+95139|Santa Clara County, CA
+95140|Santa Clara County, CA
+95148|Santa Clara County, CA
+02325|Plymouth County, MA
+02912|Providence County, RI
+02918|Providence County, RI
+20052|Washington, DC
+20057|Washington, DC
+20059|Washington, DC
+20064|Washington, DC
+20204|Washington, DC
+20220|Washington, DC
+20230|Washington, DC
+20240|Washington, DC
+20245|Washington, DC
+20250|Washington, DC
+20317|Washington, DC
+20319|Washington, DC
+20373|Washington, DC
+20390|Washington, DC
+20408|Washington, DC
+20415|Washington, DC
+20418|Washington, DC
+20422|Washington, DC
+20427|Washington, DC
+20431|Washington, DC
+20510|Washington, DC
+20515|Washington, DC
+20520|Washington, DC
+20530|Washington, DC
+20535|Washington, DC
+20540|Washington, DC
+20542|Washington, DC
+20551|Washington, DC
+20560|Washington, DC
+20565|Washington, DC
+20566|Washington, DC
+20591|Washington, DC
+20889|Montgomery County, MD
+20892|Montgomery County, MD
+20894|Montgomery County, MD
+20899|Montgomery County, MD
+33039|Miami-Dade County, FL
+95053|Santa Clara County, CA
+02815|Providence County, RI
+02858|Providence County, RI
+20260|Washington, DC
+20388|Washington, DC
+22214|Arlington County`;
+
+const ZIP_TO_COUNTY = new Map();
+for (const line of RAW_ZIP_DATA.trim().split('\n')) {
+  const part = line.trim().split('|');
+  if (part.length >= 2 && /^\d{5}$/.test(part[0])) {
+    ZIP_TO_COUNTY.set(part[0], part[1].trim());
+  }
+}
+
+/**
+ * @param {string} zip - 5-digit ZIP
+ * @returns {{ county: string | null, service_covered: boolean }}
+ */
+function lookupZip(zip) {
+  if (!zip || String(zip).length !== 5) {
+    return { county: null, service_covered: false };
+  }
+  const normalized = String(zip).padStart(5, '0');
+  const county = ZIP_TO_COUNTY.get(normalized) || null;
+  return {
+    county,
+    service_covered: county !== null
+  };
+}
+
+export { lookupZip };

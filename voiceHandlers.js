@@ -3,6 +3,7 @@ const { VoiceResponse } = twilio.twiml;
 import { COMPANY, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT, GATHER_SPEECH_MODEL, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } from './config.js';
 import { tts } from './tts.js';
 import { aiPlan, sanitizeReply } from './aiPlanner.js';
+import { lookupZip } from './zipCoverage.js';
 import { logTwilioCall } from './logger.js';
 
 // ---------- State & helpers ----------
@@ -168,7 +169,15 @@ export async function handleGather(req, res) {
     const maybeZip = extractZipFromSpeech(text);
     if (maybeZip && maybeZip !== call.state.zip) {
       call.state.zip = maybeZip;
-      // county / service_covered are determined by the model using zip list rules in the prompt
+      const { county, service_covered } = lookupZip(maybeZip);
+      call.state.county = county;
+      call.state.service_covered = service_covered;
+    }
+    // Ensure county/service_covered are set whenever we have a zip (e.g. from previous turn)
+    if (call.state.zip && (call.state.county === null || call.state.service_covered === null)) {
+      const { county, service_covered } = lookupZip(call.state.zip);
+      call.state.county = county;
+      call.state.service_covered = service_covered;
     }
 
     // If no speech recognized — мягко перепросим.
