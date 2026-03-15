@@ -1,6 +1,6 @@
 import twilio from 'twilio';
 const { VoiceResponse } = twilio.twiml;
-import { COMPANY, FILLERS_ENABLED, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT, GATHER_SPEECH_MODEL, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } from './config.js';
+import { COMPANY, FILLER_DELAY_MS, FILLERS_ENABLED, GATHER_TIMEOUT_SEC, GATHER_SPEECH_TIMEOUT, GATHER_SPEECH_MODEL, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } from './config.js';
 import { tts } from './tts.js';
 import { aiPlan, sanitizeReply } from './aiPlanner.js';
 import { lookupZip } from './zipCoverage.js';
@@ -28,6 +28,14 @@ function pickFiller() {
   if (!FILLERS_ENABLED || !FILLER_FILES.length) return null;
   const idx = Math.floor(Math.random() * FILLER_FILES.length);
   return FILLER_FILES[idx];
+}
+
+/** Play filler only when OpenAI took longer than FILLER_DELAY_MS. */
+function maybePlayFiller(vr, openaiDurationMs) {
+  if (FILLERS_ENABLED && openaiDurationMs >= FILLER_DELAY_MS) {
+    const f = pickFiller();
+    if (f) play(vr, f);
+  }
 }
 
 function extractZipFromSpeech(text) {
@@ -183,11 +191,6 @@ export async function handleGather(req, res) {
     // If no speech recognized — мягко перепросим.
     if (!text) {
       const vr = new VoiceResponse();
-      const filler = pickFiller();
-      if (filler) {
-        play(vr, filler);
-        vr.pause({ length: 1 });
-      }
       const url = await tts(`Sorry, I didn't catch that. What can we help you with today?`);
       play(vr, url);
       gather(vr, '/gather');
@@ -214,11 +217,6 @@ export async function handleGather(req, res) {
     // Obvious job intent (has priority even if "handyman" also mentioned)
     if (isJobIntent) {
       const vr = new VoiceResponse();
-      const filler = pickFiller();
-      if (filler) {
-        play(vr, filler);
-        vr.pause({ length: 1 });
-      }
       play(vr, '/media/job.mp3');
       vr.hangup();
       calls.delete(sid);
@@ -228,11 +226,6 @@ export async function handleGather(req, res) {
     // Obvious offer/marketing intent
     if (isOfferIntent) {
       const vr = new VoiceResponse();
-      const filler = pickFiller();
-      if (filler) {
-        play(vr, filler);
-        vr.pause({ length: 1 });
-      }
       play(vr, '/media/offer.mp3');
       vr.hangup();
       calls.delete(sid);
@@ -251,7 +244,9 @@ export async function handleGather(req, res) {
     if (twilioClient) {
       (async () => {
         try {
+          const openaiStart = Date.now();
           let plan = await aiPlan(historySnapshot, stateSnapshot);
+          const openaiDurationMs = Date.now() - openaiStart;
           plan = plan || {};
           const updates = plan.updates || {};
 
@@ -272,6 +267,7 @@ export async function handleGather(req, res) {
           const action = plan.action || 'ASK';
 
           const vr2 = new VoiceResponse();
+          maybePlayFiller(vr2, openaiDurationMs);
           const url = await tts(reply);
           play(vr2, url);
 
@@ -296,24 +292,14 @@ export async function handleGather(req, res) {
       })();
     }
 
-    // Немедленный ответ: один короткий филлер + длинная пауза, чтобы звонок оставался in-progress.
+    // Немедленный ответ: пауза, чтобы звонок оставался in-progress до calls.update (филлер добавится в update только если OpenAI ответил дольше FILLER_DELAY_MS).
     const vr = new VoiceResponse();
-    const filler = pickFiller();
-    if (filler) {
-      play(vr, filler);
-    }
-    // Пока идёт pause, Twilio будет считать вызов in-progress и примет последующий calls.update.
     vr.pause({ length: 120 });
     return res.type('text/xml').send(vr.toString());
 
   } catch (e) {
     console.error('Planner error:', e, 'User said:', text);
     const vr = new VoiceResponse();
-    const filler = pickFiller();
-    if (filler) {
-      play(vr, filler);
-      vr.pause({ length: 1 });
-    }
     const url = await tts(`Sorry, I had a glitch. Want to try that again?`);
     play(vr, url);
     gather(vr, '/gather');

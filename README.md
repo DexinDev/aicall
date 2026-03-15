@@ -57,6 +57,7 @@ TWILIO_PHONE_NUMBER=your_phone_number
 # OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_MODEL=gpt-4o-mini
+# Use gpt-4o for stricter rule-following (price once, URL on yes) if gpt-4o-mini repeats or ignores rules
 OPENAI_BASE_URL=https://api.openai.com/v1/chat/completions
 
 # Google Calendar Configuration
