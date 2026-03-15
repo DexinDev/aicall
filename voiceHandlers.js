@@ -18,9 +18,9 @@ const twilioClient = (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN)
 const FILLER_FILES = [
   '/media/fillers/ok_give_me_one_second.mp3',
   '/media/fillers/one_second_please.mp3',
-  '/media/fillers/gotcha_let_me_check_real_quick.mp3',
+  // '/media/fillers/gotcha_let_me_check_real_quick.mp3',
   '/media/fillers/alright_just_a_moment.mp3',
-  '/media/fillers/sure_let_me_see.mp3',
+  // '/media/fillers/sure_let_me_see.mp3',
   '/media/fillers/got_it_let_me_think_for_a_sec.mp3'
 ];
 
